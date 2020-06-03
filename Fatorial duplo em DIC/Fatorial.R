@@ -34,6 +34,11 @@ options(OutDec=",")
 # Mostra as 6 primeiras linhas para visualização.
 head(dados)
 
+# Filtrar dados por categorias, quando existir:
+# Exemplo: mostrar somente dados da Profundidade 2.
+# (Para usar, exclua o "#" abaixo e modifique)
+# dados <- filter(dados, Profundidade==2)
+
 # Troque os nomes das colunas (entre "c(  )"):
 # FATOR1 = c(  ): para TRATamento;
 # RESP = c(  ): para variável resposta a ser analisada.
@@ -132,7 +137,7 @@ write.csv2(resumo,
       outcol="blue",
       xlab="Recipiente",
       ylab="Altura da planta (cm)")
-  points(tapply(RESP,TRAT,mean),col="red",pch=3)
+  points(tapply(RESP,FATOR1,mean),col="red",pch=3)
   
 # Boxplot para cada nível do FATOR2:
   boxplot(RESP ~ FATOR2,
@@ -140,7 +145,7 @@ write.csv2(resumo,
           outcol="blue",
           xlab="Especie",
           ylab="Altura da planta (cm)")
-  points(tapply(RESP,FATOR1,mean),col="red",pch=3)
+  points(tapply(RESP,FATOR2,mean),col="red",pch=3)
 
     
 # --------------------------------------------
@@ -156,7 +161,7 @@ FATOR2 <- as.factor(FATOR2)
 RESP <- as.numeric(RESP)
 
 # Cálculo dos resíduos:
-mod = with(dados, aov(RESP ~ FATOR1*FATOR2))
+mod = aov(RESP ~ FATOR1*FATOR2)
 
 # Gráficos de resíduos:
 # Para ser normal, o histograma deve ter formato de sino no centro.
@@ -182,7 +187,7 @@ plotres(mod)
   
 # 1. Raiz quadrada:
   TR1 <- (RESP)^2
-  modTR1 = with(dados, aov(TR1 ~ FATOR1*FATOR2))
+  modTR1 = aov(TR1 ~ FATOR1*FATOR2)
   # Gráfico dos resíduos
   plotres(modTR1)
   # Testes
@@ -192,7 +197,7 @@ plotres(mod)
 # 2. Logarítmica:
 # Obs: precisa excluir valores = 0.
   TR2 <- log(RESP)
-  modTR2 = with(dados, aov(TR2 ~ FATOR1*FATOR2))
+  modTR2 = aov(TR2 ~ FATOR1*FATOR2)
   # Gráfico dos resíduos
   plotres(modTR2)
   # Testes
@@ -201,7 +206,7 @@ plotres(mod)
   
 # 3. Hiperbólica
   TR3 <- 1/RESP
-  modTR3 = with(dados, aov(TR3 ~ FATOR1*FATOR2))
+  modTR3 = aov(TR3 ~ FATOR1*FATOR2)
   # Gráfico dos resíduos
   plotres(modTR3)
   # Testes
@@ -216,7 +221,7 @@ plotres(mod)
   lambda.max <- bc$x[which.max(bc$y)]
   lambda.max # Se for próximo de zero, usar logarítmico (TR2).
   TR4 <- (RESP^(lambda.max)-1)/lambda.max
-  modTR4 = with(dados, aov(TR4 ~ FATOR1*FATOR2))
+  modTR4 = aov(TR4 ~ FATOR1*FATOR2)
   # Gráfico dos resíduos
   plotres(modTR4)
   # Testes
@@ -244,9 +249,8 @@ plotres(mod)
   FATOR1 <- as.factor(FATOR1)
   FATOR2 <- as.factor(FATOR2)
   RESP.TR <- as.numeric(RESP.TR)
-  anv <- aov(RESP.TR ~ FATOR1*FATOR2)
-  mod.TR = with(dados.TR, anv)
-  
+  mod.TR <- aov(RESP.TR ~ FATOR1*FATOR2)
+
   # Teste de Bartlett por fator:
   # Se p-value > 0,05, há homogeneidade das variâncias.
   bartlett.test(mod.TR$res ~ FATOR1) 
@@ -285,14 +289,14 @@ plotres(mod)
 # Tabela ANOVA
 # Se Pr(>F) < 0,05, então existe diferença
 # significativa a 5%.
-summary(anv)
+summary(mod.TR)
                       
 # df=graus de liberdade. Pr=probabilidade 
 # de ser maior que F tabelado.
 
 # Exportar tabela ANOVA para Excel:
 write.csv2(
-  as.data.frame(summary(anv)[[1]]), 
+  as.data.frame(summary(mod.TR)[[1]]), 
   file = 
     "Fatorial - Tabela ANOVA.csv") 
 

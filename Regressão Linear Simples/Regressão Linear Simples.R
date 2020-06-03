@@ -33,6 +33,11 @@
 # Mostra as 6 primeiras linhas para visualização.
 # As colunas devem seguir a ordem: tratamento // resposta;
   head(dados)
+  
+# Filtrar dados por categorias, quando existir:
+# Exemplo: mostrar somente dados da Profundidade 2.
+# (Para usar, exclua o "#" abaixo e modifique)
+# dados <- filter(dados, Profundidade==2)
 
 # Troque os nomes das colunas (entre "c(  )"):
 # TRAT = c(  ): para variável independente X;
@@ -137,7 +142,7 @@ library(nortest)
 library(ExpDes)
 
 # Cálculo dos resíduos:
-mod = with(dados, lm(Y ~ X))
+mod = lm(Y ~ X)
 
 # Gráficos de resíduos:
 # Para ser normal, o histograma deve ter formato de sino no centro.
@@ -169,7 +174,7 @@ ad.test(mod$res) # Anderson-Darling
 
 # 1. Raiz quadrada:
   TR1 <- (Y)^2
-  modTR1 = with(dados, lm(TR1 ~ X))
+  modTR1 = lm(TR1 ~ X)
   # Gráfico dos resíduos
   plotres(modTR1)
   # Testes
@@ -179,7 +184,7 @@ ad.test(mod$res) # Anderson-Darling
 # 2. Logarítmica:
   # Obs: precisa excluir valores = 0.
   TR2 <- log(Y)
-  modTR2 = with(dados, lm(TR2 ~ X))
+  modTR2 = lm(TR2 ~ X)
   # Gráfico dos resíduos
   plotres(modTR2)
   # Testes
@@ -188,7 +193,7 @@ ad.test(mod$res) # Anderson-Darling
   
 # 3. Hiperbólica
   TR3 <- 1/Y
-  modTR3 = with(dados, lm(TR3 ~ X))
+  modTR3 = lm(TR3 ~ X)
   # Gráfico dos resíduos
   plotres(modTR3)
   # Testes
@@ -203,7 +208,7 @@ ad.test(mod$res) # Anderson-Darling
   lambda.max <- bc$x[which.max(bc$y)]
   lambda.max # Se for próximo de zero, usar logarítmico (TR2).
   TR4 <- (Y^(lambda.max)-1)/lambda.max
-  modTR4 = with(dados, lm(TR4 ~ X))
+  modTR4 = lm(TR4 ~ X)
   # Gráfico dos resíduos
   plotres(modTR4)
   # Testes
@@ -217,8 +222,6 @@ ad.test(mod$res) # Anderson-Darling
   # dados transformados!
 
   
-  
-  
 # --------------------------------------------
 # 5) TESTE DE HOMOCEDASTICIDADE DAS VARIÂNCIAS
 # --------------------------------------------
@@ -229,9 +232,8 @@ ad.test(mod$res) # Anderson-Darling
   # Redefinição de dados:
   dados.TR <- data.frame(X, Y.TR)
   attach(dados.TR)
-  ajuste <- lm(Y.TR ~ X)
-  mod.TR = with(dados.TR, ajuste)
-  
+  mod.TR <- lm(Y.TR ~ X)
+
   # Teste de Bartlett:
   # Se p-value > 0,05, há homogeneidade das variâncias.
   bartlett.test(mod.TR$res ~ X) 
@@ -277,7 +279,7 @@ anova(mod.TR)
 
 # Exportar tabela ANOVA para Excel:
 write.csv2(
-  as.data.frame(anova(ajuste)), 
+  as.data.frame(anova(mod.TR)), 
   file = 
     "RLS - ANOVA da Regressão.csv") 
 
@@ -294,9 +296,8 @@ write.csv2(
 # b = (Intercept)
 # Se Pr(>|t|) < 0,05, então o coeficiente foi
 # significativo a 5%.
-  coefs <- as.data.frame(summary(ajuste)[[4]])
-  ajuste.o = lm(Y ~ X, data=dados) 
-  coefs.o <- as.data.frame(summary(ajuste.o)[[4]])
+  coefs <- as.data.frame(summary(mod.TR)[[4]])
+  coefs.o <- as.data.frame(summary(mod)[[4]])
   coefs$Estimate <- coefs.o$Estimate
   coefs$`Std. Error` <- coefs.o$`Std. Error`
   colnames(coefs) <- c(
@@ -315,7 +316,7 @@ write.csv2(
 # 9) Intervalos de confiança
 # --------------------------------------------
 # Cálculo dos intervalos de confiança:
-  ic <- as.data.frame(confint(ajuste))
+  ic <- as.data.frame(confint(mod.TR))
 
 # Se os dados não foram transformados em 4.1), 
 # rode o seguinte comando e pule para 10)
@@ -347,10 +348,10 @@ write.csv2(
   
   # R²
   erro_puro <- lm(Y.TR ~ factor(X))
-  summary(ajuste)$r.squared/summary(erro_puro)$r.squared
+  summary(mod.TR)$r.squared/summary(erro_puro)$r.squared
 
   # R² ajustado
-  summary(ajuste)$adj.r.squared/summary(erro_puro)$adj.r.squared
+  summary(mod.TR)$adj.r.squared/summary(erro_puro)$adj.r.squared
   
 
 # --------------------------------------------
@@ -364,7 +365,7 @@ write.csv2(
       pch=19, col="gray", data = dados)
 
 # Linha de tendência (vermelho):
-abline(ajuste.o, col="red", lwd=2) 
+abline(mod, col="red", lwd=2) 
 
 # Médias (azul):
   u <- as.data.frame(tapply(Y, X, mean))
@@ -376,7 +377,6 @@ abline(ajuste.o, col="red", lwd=2)
   options(OutDec=",")
   points(u[[1]] ~ v,col="blue",pch=19)
 
-
   
 # --------------------------------------------
 # 12) Teste da Falta de Ajuste
@@ -384,15 +384,13 @@ abline(ajuste.o, col="red", lwd=2)
 # Usar apenas quando Y tiver repetições.
 # Se Pr(>F) > 0,05, então o modelo se ajusta bem aos dados 
 # a 5% de significância.
-anova(ajuste, erro_puro)                        
+anova(mod.TR, erro_puro)                        
 
 # Exportar para Excel:
 write.csv2(
-  as.data.frame(anova(ajuste, erro_puro)), 
+  as.data.frame(anova(mod.TR, erro_puro)), 
   file = 
     "RLS - Teste da Falta de Ajuste.csv") 
-
-
 
 
 

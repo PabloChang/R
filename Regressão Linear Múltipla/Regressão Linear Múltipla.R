@@ -33,6 +33,11 @@
 # Mostra as 6 primeiras linhas para visualização.
 # As colunas devem seguir a ordem: tratamento // resposta;
   head(dados)
+  
+# Filtrar dados por categorias, quando existir:
+# Exemplo: mostrar somente dados da Profundidade 2.
+# (Para usar, exclua o "#" abaixo e modifique)
+# dados <- filter(dados, Profundidade==2)
 
 # Troque os nomes das colunas (entre "c(  )"):
 # X1 = c(  ): para a primeira variável independente;
@@ -152,7 +157,7 @@ library(nortest)
 library(ExpDes)
 
 # Cálculo dos resíduos:
-mod = with(dados, lm(Y ~ X1+X2+X3+X4))
+mod = lm(Y ~ X1+X2+X3+X4)
 
 # Gráficos de resíduos:
 # Para ser normal, o histograma deve ter formato de sino no centro.
@@ -184,7 +189,7 @@ ad.test(mod$res) # Anderson-Darling
 
 # 1. Raiz quadrada:
   TR1 <- (Y)^2
-  modTR1 = with(dados, lm(TR1 ~ X1+X2+X3+X4))
+  modTR1 = lm(TR1 ~ X1+X2+X3+X4)
   # Gráfico dos resíduos
   plotres(modTR1)
   # Testes
@@ -194,7 +199,7 @@ ad.test(mod$res) # Anderson-Darling
 # 2. Logarítmica:
   # Obs: precisa excluir valores = 0.
   TR2 <- log(Y)
-  modTR2 = with(dados, lm(TR2 ~ X1+X2+X3+X4))
+  modTR2 = lm(TR2 ~ X1+X2+X3+X4)
   # Gráfico dos resíduos
   plotres(modTR2)
   # Testes
@@ -203,7 +208,7 @@ ad.test(mod$res) # Anderson-Darling
   
 # 3. Hiperbólica
   TR3 <- 1/Y
-  modTR3 = with(dados, lm(TR3 ~ X1+X2+X3+X4))
+  modTR3 = lm(TR3 ~ X1+X2+X3+X4)
   # Gráfico dos resíduos
   plotres(modTR3)
   # Testes
@@ -218,7 +223,7 @@ ad.test(mod$res) # Anderson-Darling
   lambda.max <- bc$x[which.max(bc$y)]
   lambda.max # Se for próximo de zero, usar logarítmico (TR2).
   TR4 <- (Y^(lambda.max)-1)/lambda.max
-  modTR4 = with(dados, lm(TR4 ~ X1+X2+X3+X4))
+  modTR4 = lm(TR4 ~ X1+X2+X3+X4)
   # Gráfico dos resíduos
   plotres(modTR4)
   # Testes
@@ -248,8 +253,7 @@ ad.test(mod$res) # Anderson-Darling
                          X4,
                          Y.TR)
   attach(dados.TR)
-  ajuste <- lm(Y.TR ~ X1+X2+X3+X4)
-  mod.TR = with(dados.TR, ajuste)
+  mod.TR <- lm(Y.TR ~ X1+X2+X3+X4)
   
   # Teste de Bartlett:
   # Se p-value > 0,05, há homogeneidade das variâncias.
@@ -302,7 +306,7 @@ anova(mod.TR)
 
 # Exportar tabela ANOVA para Excel:
 write.csv2(
-  as.data.frame(anova(ajuste)), 
+  as.data.frame(anova(mod.TR)), 
   file = 
     "RLM - ANOVA da Regressão.csv") 
 
@@ -320,9 +324,8 @@ write.csv2(
 # b = (Intercept)
 # Se Pr(>|t|) < 0,05, então o coeficiente foi
 # significativo a 5%.
-  coefs <- as.data.frame(summary(ajuste)[[4]])
-  ajuste.o = lm(Y ~ X1+X2+X3+X4, data=dados) 
-  coefs.o <- as.data.frame(summary(ajuste.o)[[4]])
+  coefs <- as.data.frame(summary(mod.TR)[[4]])
+  coefs.o <- as.data.frame(summary(mod)[[4]])
   coefs$Estimate <- coefs.o$Estimate
   coefs$`Std. Error` <- coefs.o$`Std. Error`
   colnames(coefs) <- c(
@@ -341,7 +344,7 @@ write.csv2(
 # 10) Intervalos de confiança
 # --------------------------------------------
 # Cálculo dos intervalos de confiança:
-  ic <- as.data.frame(confint(ajuste))
+  ic <- as.data.frame(confint(mod.TR))
 
 # Se os dados não foram transformados em 4.1), 
 # rode o seguinte comando e pule para 10)
@@ -379,10 +382,10 @@ write.csv2(
                     factor(X2) +
                     factor(X3) +
                     factor(X4))
-  summary(ajuste)$r.squared/summary(erro_puro)$r.squared
+  summary(mod.TR)$r.squared/summary(erro_puro)$r.squared
 
   # R² ajustado
-  summary(ajuste)$adj.r.squared/summary(erro_puro)$adj.r.squared
+  summary(mod.TR)$adj.r.squared/summary(erro_puro)$adj.r.squared
   
 
 # --------------------------------------------
@@ -391,11 +394,11 @@ write.csv2(
 # Usar apenas quando tiver repetições.
 # Se Pr(>F) > 0,05, então o modelo se ajusta bem aos dados 
 # a 5% de significância.
-anova(ajuste, erro_puro)                        
+anova(mod.TR, erro_puro)                        
 
 # Exportar para Excel:
 write.csv2(
-  as.data.frame(anova(ajuste, erro_puro)), 
+  as.data.frame(anova(mod.TR, erro_puro)), 
   file = 
     "RLM - Teste da Falta de Ajuste.csv") 
 
@@ -407,13 +410,13 @@ write.csv2(
 # ser mantidas no modelo sem perda de qualidade.
 
 # Método stepwise:
-step(ajuste, direction = "both")
+step(mod.TR, direction = "both")
 
 # Método backward:
-step(ajuste, direction = "backward")
+step(mod.TR, direction = "backward")
 
 # Método forward:
-step(ajuste, direction = "forward")
+step(mod.TR, direction = "forward")
 
 
 # --------------------------------------------
@@ -436,7 +439,6 @@ write.csv2(
   as.data.frame(anova(novo_modelo)), 
   file = 
     "RLM - ANOVA do novo modelo.csv") 
-
 
 
 # --------------------------------------------
