@@ -34,6 +34,11 @@ options(OutDec=",")
 # Mostra as 6 primeiras linhas para visualização.
 head(dados)
 
+# Filtrar dados por categorias, quando existir:
+# Exemplo: mostrar somente dados da Profundidade 2.
+# (Para usar, exclua o "#" abaixo e modifique)
+# dados <- filter(dados, Profundidade==2)
+
 # Troque os nomes das colunas (entre "c(  )"):
 # TRAT = c(  ): para tratamento;
 # RESP = c(  ): para variável resposta a ser analisada.
@@ -145,7 +150,7 @@ TRAT <- as.factor(TRAT)
 RESP <- as.numeric(RESP)
   
 # Cálculo dos resíduos:
-mod = with(dados, aov(RESP ~ TRAT))
+mod = aov(RESP ~ TRAT)
 
 # Gráficos de resíduos:
 # Para ser normal, o histograma deve ter formato de sino no centro.
@@ -171,7 +176,7 @@ plotres(mod)
   
 # 1. Raiz quadrada:
   TR1 <- (RESP)^2
-  modTR1 = with(dados, aov(TR1 ~ TRAT))
+  modTR1 = aov(TR1 ~ TRAT)
   # Gráfico dos resíduos
   plotres(modTR1)
   # Testes
@@ -181,7 +186,7 @@ plotres(mod)
 # 2. Logarítmica:
 # Obs: precisa excluir valores = 0.
   TR2 <- log(RESP)
-  modTR2 = with(dados, aov(TR2 ~ TRAT))
+  modTR2 = aov(TR2 ~ TRAT)
   # Gráfico dos resíduos
   plotres(modTR2)
   # Testes
@@ -190,7 +195,7 @@ plotres(mod)
   
 # 3. Hiperbólica
   TR3 <- 1/RESP
-  modTR3 = with(dados, aov(TR3 ~ TRAT))
+  modTR3 = aov(TR3 ~ TRAT)
   # Gráfico dos resíduos
   plotres(modTR3)
   # Testes
@@ -205,7 +210,7 @@ plotres(mod)
   lambda.max <- bc$x[which.max(bc$y)]
   lambda.max # Se for próximo de zero, usar logarítmico (TR2).
   TR4 <- (RESP^(lambda.max)-1)/lambda.max
-  modTR4 = with(dados, aov(TR4 ~ TRAT))
+  modTR4 = aov(TR4 ~ TRAT)
   # Gráfico dos resíduos
   plotres(modTR4)
   # Testes
@@ -233,9 +238,8 @@ plotres(mod)
   attach(dados.TR)
   TRAT <- as.factor(TRAT)
   RESP.TR <- as.numeric(RESP.TR)
-  anv <- aov(RESP.TR ~ TRAT)
-  mod.TR = with(dados.TR, anv)
-  
+  mod.TR <- aov(RESP.TR ~ TRAT)
+   
   # Teste de Bartlett:
   # Se p-value > 0,05, há homogeneidade das variâncias.
   bartlett.test(mod.TR$res ~ TRAT) 
@@ -271,13 +275,13 @@ plotres(mod)
 # Tabela ANOVA
 # Se Pr(>F) < 0,05, então existe diferença
 # significativa a 5%.
-summary(anv)                        
+summary(mod.TR)                        
 # df=graus de liberdade. Pr=probabilidade 
 # de ser maior que F tabelado.
 
 # Exportar tabela ANOVA para Excel:
 write.csv2(
-  as.data.frame(summary(anv)[[1]]), 
+  as.data.frame(summary(mod.TR)[[1]]), 
   file = 
     "DIC - Tabela ANOVA.csv") 
 
@@ -290,7 +294,7 @@ write.csv2(
   require(easyanova)
   require(dplyr)
 
-# Tabela usando dados transoformados (quando for o caso),
+# Tabela usando dados transformados (quando for o caso),
 # mas mostrando médias originais:
   par(mfrow=c(1, 1))
   ttuk <- easyanova::ea1(dados.TR, design=1, plot=2)
