@@ -1,22 +1,19 @@
 # --------------------------------------------
-# Regressão Linear Simples
-# Elaborado por: Pablo Chang (05/05/2020)
+# Regressão Linear Múltipla
+# Elaborado por: Pablo Chang (16/07/2020)
 # https://github.com/PabloChang/R
 # --------------------------------------------
 # O arquivo de dados e script devem estar numa mesma pasta; 
 # Os dados devem ser salvos em ".csv (separado por vírgulas)";
 # Não pode haver espaço e acentuação nos títulos, única guia;
-# Os tratametos/fatores devem ser numéricos;
 # Para rodar os comandos, use Ctrl + Enter em cada linha;
 # Ativar/desativar comentários: Ctrl + Shift + C.
 
 # --------------------------------------------
 # 1) LEITURA E PREPARAÇÃO DOS DADOS
 # --------------------------------------------
-# Comando para definir a localização da pasta.
-# Caso não tenho instalado o pacote é só rodar: 
-# install.packages("rstudioapi")
-  library(rstudioapi)
+# Comando para definir a localização da pasta:
+library(rstudioapi) # precisa ter instalado o pacote "rstudioapi"
   current_path = 
     rstudioapi::getActiveDocumentContext()$path 
   setwd(dirname(current_path ))
@@ -37,6 +34,7 @@
 # Filtrar dados por categorias, quando existir:
 # Exemplo: mostrar somente dados da Profundidade 2.
 # (Para usar, exclua o "#" abaixo e modifique)
+# require(dplyr)
 # dados <- filter(dados, Profundidade==2)
 
 # Troque os nomes das colunas (entre "c(  )"):
@@ -187,8 +185,8 @@ ad.test(mod$res) # Anderson-Darling
 # --------------------------------------------
 # Faça os testes, até atingir a normalidade!
 
-# 1. Raiz quadrada:
-  TR1 <- (Y)^2
+# TR1. Raiz quadrada:
+  TR1 <- sqrt(Y)
   modTR1 = lm(TR1 ~ X1+X2+X3+X4)
   # Gráfico dos resíduos
   plotres(modTR1)
@@ -196,7 +194,7 @@ ad.test(mod$res) # Anderson-Darling
   shapiro.test(modTR1$res) # Shapiro-Wilk
   ad.test(modTR1$res) # Anderson-Darling
   
-# 2. Logarítmica:
+# TR2. Logarítmica:
   # Obs: precisa excluir valores = 0.
   TR2 <- log(Y)
   modTR2 = lm(TR2 ~ X1+X2+X3+X4)
@@ -206,7 +204,7 @@ ad.test(mod$res) # Anderson-Darling
   shapiro.test(modTR2$res) # Shapiro-Wilk
   ad.test(modTR2$res) # Anderson-Darling
   
-# 3. Hiperbólica
+# TR3. Hiperbólica
   TR3 <- 1/Y
   modTR3 = lm(TR3 ~ X1+X2+X3+X4)
   # Gráfico dos resíduos
@@ -215,7 +213,7 @@ ad.test(mod$res) # Anderson-Darling
   shapiro.test(modTR3$res) # Shapiro-Wilk
   ad.test(modTR3$res) # Anderson-Darling
   
-# 4. Box-Cox
+# TR4. Box-Cox
   require(MASS)
   # Cálculo
   par(mfrow=c(1, 1))
@@ -230,14 +228,12 @@ ad.test(mod$res) # Anderson-Darling
   shapiro.test(modTR4$res) # Shapiro-Wilk
   ad.test(modTR4$res) # Anderson-Darling
   
-# Digite o nº do TR escolhido dentro de ( ):
+# Digite o TR escolhido dentro de ( ):
   Y.TR <- 
     (Y) #troque aqui, por exemplo: (TR2).
   # Com isso, as próximas análises irão usar os
   # dados transformados!
 
-  
-  
   
 # --------------------------------------------
 # 6) TESTE DE HOMOCEDASTICIDADE DAS VARIÂNCIAS
@@ -309,7 +305,6 @@ write.csv2(
   as.data.frame(anova(mod.TR)), 
   file = 
     "RLM - ANOVA da Regressão.csv") 
-
 
 
 # --------------------------------------------

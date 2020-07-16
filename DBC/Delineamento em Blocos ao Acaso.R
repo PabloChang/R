@@ -1,23 +1,19 @@
 # --------------------------------------------
 # Delineamento em Blocos ao Acaso
-# Elaborado por: Pablo Chang (26/05/2020)
+# Elaborado por: Pablo Chang (16/07/2020)
 # https://github.com/PabloChang/R
 # --------------------------------------------
 # O arquivo de dados e script devem estar numa mesma pasta; 
 # Os dados devem ser salvos em ".csv (separado por vírgulas)";
 # Não pode haver espaço e acentuação nos títulos, única guia;
-# Os tratametos/fatores devem ser numéricos;
 # Para rodar os comandos, use Ctrl + Enter em cada linha;
 # Ativar/desativar comentários: Ctrl + Shift + C.
-
 
 # --------------------------------------------
 # 1) LEITURA E PREPARAÇÃO DOS DADOS
 # --------------------------------------------
-# Comando para definir a localização da pasta
-# Caso não tenho instalado o pacote é só rodar: 
-# install.packages("rstudioapi")
-library(rstudioapi)
+# Comando para definir a localização da pasta:
+library(rstudioapi) # precisa ter instalado o pacote "rstudioapi"
   current_path = 
     rstudioapi::getActiveDocumentContext()$path 
   setwd(dirname(current_path ))
@@ -38,14 +34,15 @@ head(dados)
 # Filtrar dados por categorias, quando existir:
 # Exemplo: mostrar somente dados da Profundidade 2.
 # (Para usar, exclua o "#" abaixo e modifique)
+# require(dplyr)
 # dados <- filter(dados, Profundidade==2)
 
 # Troque os nomes das colunas (entre "c(  )"):
 # TRAT = c(  ): para tratamento;
 # RESP = c(  ): para variável resposta a ser analisada.
 attach(dados) 
-dados <- data.frame(TRAT = c(Densidade),
-                    BLOCO = c(Genotipo),
+dados <- data.frame(TRAT = as.character(Densidade),
+                    BLOCO = as.character(Genotipo),
                     RESP = c(MassaFrescaDaRaiz)
                     )
 
@@ -185,8 +182,8 @@ write.csv2(resumo,
 # --------------------------------------------
 # Faça os testes, até atingir a normalidade!
     
-# 1. Raiz quadrada:
-    TR1 <- (RESP)^2
+# TR1. Raiz quadrada:
+    TR1 <- sqrt(RESP)
     modTR1 = aov(TR1 ~ TRAT + BLOCO)
     # Gráfico dos resíduos
     plotres(modTR1)
@@ -194,7 +191,7 @@ write.csv2(resumo,
     shapiro.test(modTR1$res) # Shapiro-Wilk
     ad.test(modTR1$res) # Anderson-Darling
     
-# 2. Logarítmica:
+# TR2. Logarítmica:
 # Obs: precisa excluir valores = 0.
     TR2 <- log(RESP)
     modTR2 = aov(TR2 ~ TRAT + BLOCO)
@@ -204,7 +201,7 @@ write.csv2(resumo,
     shapiro.test(modTR2$res) # Shapiro-Wilk
     ad.test(modTR2$res) # Anderson-Darling
     
-# 3. Hiperbólica
+# TR3. Hiperbólica
     TR3 <- 1/RESP
     modTR3 = aov(TR3 ~ TRAT + BLOCO)
     # Gráfico dos resíduos
@@ -213,7 +210,7 @@ write.csv2(resumo,
     shapiro.test(modTR3$res) # Shapiro-Wilk
     ad.test(modTR3$res) # Anderson-Darling
     
-# 4. Box-Cox
+# TR4. Box-Cox
     require(MASS)
     # Cálculo
     par(mfrow=c(1, 1))
@@ -228,7 +225,7 @@ write.csv2(resumo,
     shapiro.test(modTR4$res) # Shapiro-Wilk
     ad.test(modTR4$res) # Anderson-Darling
     
-# Digite o nº do TR escolhido dentro de ( ):
+# Digite o TR escolhido dentro de ( ):
     RESP.TR <- 
       (RESP) #troque aqui, por exemplo: (TR2).
     # Com isso, as próximas análises irão usar os
@@ -333,5 +330,38 @@ write.csv2(teste, file =
              "DBC - Testes de Comparação de Médias.csv")
 
 
+# --------------------------------------------
+# 9) DMS - Diferença Mínima Significativa do teste Tukey
+# --------------------------------------------
+# Valor que retrata a diferença mínima para que duas
+# médias tenham diferença significativa a 5%.
 
+  # Cálculo do DMS:
+  t.HSD <- TukeyHSD(mod.TR, ordered=TRUE)
+  dms <- unname(0.5*diff(t.HSD$TRAT[1, 2:3]))
+  LimSup <- mean(RESP.TR) 
+  LimInf <- LimSup-dms  
+  
+  # Os dados foram transformados em 4.1)?
+  # Se NÃO, apenas rode o comando abaixo:
+    dms
+  
+  # Se SIM, escolha o TR usado para
+  # realizar a transformação inversa:
+    # TR1. Raiz quadrada:
+    dms.sqrt <- (LimSup)^2-(LimInf)^2 
+    dms.sqrt
+    
+    # TR2. Logarítmica:
+    dms.log <- exp(LimSup)-exp(LimInf) 
+    dms.log
+    
+    # TR3. Hiperbólica:
+    dms.hip <- (LimSup)^(-1)-(LimInf)^(-1)
+    dms.hip
+    
+    # TR4. Box-Cox:
+    dms.bc <- ((LimSup*lambda.max)+1)^(1/lambda.max) -
+              ((LimInf*lambda.max)+1)^(1/lambda.max)
+    dms.bc
 

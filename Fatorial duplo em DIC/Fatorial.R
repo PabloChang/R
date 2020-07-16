@@ -1,12 +1,11 @@
 # --------------------------------------------
 # Fatorial duplo em Delineamento Inteiramente ao Acaso
-# Elaborado por: Pablo Chang (21/04/2020)
+# Elaborado por: Pablo Chang (16/07/2020)
 # https://github.com/PabloChang/R
 # --------------------------------------------
 # O arquivo de dados e script devem estar numa mesma pasta; 
 # Os dados devem ser salvos em ".csv (separado por vírgulas)";
 # Não pode haver espaço e acentuação nos títulos, única guia;
-# Os tratametos/fatores devem ser numéricos;
 # Para rodar os comandos, use Ctrl + Enter em cada linha;
 # Ativar/desativar comentários: Ctrl + Shift + C.
 
@@ -14,9 +13,7 @@
 # 1) LEITURA E PREPARAÇÃO DOS DADOS
 # --------------------------------------------
 # Comando para definir a localização da pasta:
-# Caso não tenho instalado o pacote é só rodar (sem #):
-# install.packages("rstudioapi")
-library(rstudioapi)
+library(rstudioapi) # precisa ter instalado o pacote "rstudioapi"
   current_path =
     rstudioapi::getActiveDocumentContext()$path
   setwd(dirname(current_path))
@@ -37,14 +34,15 @@ head(dados)
 # Filtrar dados por categorias, quando existir:
 # Exemplo: mostrar somente dados da Profundidade 2.
 # (Para usar, exclua o "#" abaixo e modifique)
+# require(dplyr)
 # dados <- filter(dados, Profundidade==2)
 
 # Troque os nomes das colunas (entre "c(  )"):
 # FATOR1 = c(  ): para TRATamento;
 # RESP = c(  ): para variável resposta a ser analisada.
 attach(dados) 
-dados <- data.frame(FATOR1 = c(Recipiente),
-                    FATOR2 = c(Especie),
+dados <- data.frame(FATOR1 = as.character(Recipiente),
+                    FATOR2 = as.character(Especie),
                     RESP = c(Altura)
                     )
 
@@ -185,8 +183,8 @@ plotres(mod)
 # --------------------------------------------
 # Faça os testes, até atingir a normalidade!
   
-# 1. Raiz quadrada:
-  TR1 <- (RESP)^2
+# TR1. Raiz quadrada:
+  TR1 <- sqrt(RESP)
   modTR1 = aov(TR1 ~ FATOR1*FATOR2)
   # Gráfico dos resíduos
   plotres(modTR1)
@@ -194,7 +192,7 @@ plotres(mod)
   shapiro.test(modTR1$res) # Shapiro-Wilk
   ad.test(modTR1$res) # Anderson-Darling
   
-# 2. Logarítmica:
+# TR2. Logarítmica:
 # Obs: precisa excluir valores = 0.
   TR2 <- log(RESP)
   modTR2 = aov(TR2 ~ FATOR1*FATOR2)
@@ -204,7 +202,7 @@ plotres(mod)
   shapiro.test(modTR2$res) # Shapiro-Wilk
   ad.test(modTR2$res) # Anderson-Darling
   
-# 3. Hiperbólica
+# TR3. Hiperbólica
   TR3 <- 1/RESP
   modTR3 = aov(TR3 ~ FATOR1*FATOR2)
   # Gráfico dos resíduos
@@ -213,7 +211,7 @@ plotres(mod)
   shapiro.test(modTR3$res) # Shapiro-Wilk
   ad.test(modTR3$res) # Anderson-Darling
   
-# 4. Box-Cox
+# TR4. Box-Cox
   require(MASS)
   # Cálculo
   par(mfrow=c(1, 1))
@@ -332,6 +330,12 @@ fat2.dic(FATOR1,
 detach(package:ExpDes.pt, unload = TRUE)
 
 
-
-
-
+# --------------------------------------------
+# 10) COEFICIENTE DE VARIAÇÃO (CV) POR NÍVEL DE FATOR
+# --------------------------------------------
+# Calcula o valor de CV (%) para cada nível de fator.
+# Ex: o CV do nível 3 do Fator 1.
+require(goeveg)
+cv(filter(dados,
+          FATOR1==3
+          )$RESP)*100
