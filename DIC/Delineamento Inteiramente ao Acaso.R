@@ -1,6 +1,6 @@
 # --------------------------------------------
 # Delineamento Inteiramente ao Acaso
-# Elaborado por: Pablo Chang (15/07/2020)
+# Elaborado por: Pablo Chang (16/07/2020)
 # https://github.com/PabloChang/R
 # --------------------------------------------
 # O arquivo de dados e script devem estar numa mesma pasta; 
@@ -13,9 +13,7 @@
 # 1) LEITURA E PREPARAÇÃO DOS DADOS
 # --------------------------------------------
 # Comando para definir a localização da pasta:
-# Caso não tenho instalado o pacote é só rodar (sem #):
-# install.packages("rstudioapi")
-library(rstudioapi)
+library(rstudioapi) # precisa ter instalado o pacote "rstudioapi"
   current_path =
     rstudioapi::getActiveDocumentContext()$path
   setwd(dirname(current_path))
@@ -39,8 +37,8 @@ head(dados)
 # require(dplyr)
 # dados <- filter(dados, Profundidade==2)
 
-# Troque os nomes das colunas (entre "c(  )"):
-# TRAT = c(  ): para tratamento;
+# Troque os nomes das colunas:
+# TRAT = as.character(  ): para tratamento;
 # RESP = c(  ): para variável resposta a ser analisada.
 attach(dados) 
 dados <- data.frame(TRAT = as.character(Densidade), 
@@ -65,7 +63,7 @@ head(dados)
 
 # Anexar os dados na memória do R:
 attach(dados) 
-dados
+
 # --------------------------------------------
 # 2) RESUMO DESCRITIVO 
 # --------------------------------------------
@@ -218,7 +216,7 @@ plotres(mod)
   
 # Digite o TR escolhido dentro de ( ):
   RESP.TR <- 
-    (TR2) #troque aqui, por exemplo: (TR2).
+    (RESP) #troque aqui, por exemplo: (TR2).
   # Com isso, as próximas análises irão usar os
   # dados transformados!
   
