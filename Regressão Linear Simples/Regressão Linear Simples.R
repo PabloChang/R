@@ -289,7 +289,7 @@ write.csv2(
 # y = a*x+b
 
 # Cálculo dos coeficientes
-# Os coeficientes estão na coluna Estimate.
+# Os coeficientes estão na coluna Estimativa.
 # a = X
 # b = (Intercept)
 # Se Pr(>|t|) < 0,05, então o coeficiente foi
@@ -367,7 +367,6 @@ abline(mod, col="red", lwd=2)
 
 # Médias (azul):
   u <- as.data.frame(tapply(Y, X, mean))
-  u[[1]]
   options(OutDec=".")
   v <- factor(X)
   v <- levels(v)

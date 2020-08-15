@@ -146,6 +146,11 @@ require(GGally)
 ggcorr(dados, label=T)
 # Config: https://rpubs.com/melinatarituba/353262
 
+# Com níveis de significância e histograma
+# * 5%  ** 1% *** 0,1%
+require(PerformanceAnalytics)
+chart.Correlation(dados, histogram=T)
+
 
 # --------------------------------------------
 # 5) TESTE DE NORMALIDADE
@@ -258,7 +263,7 @@ ad.test(mod$res) # Anderson-Darling
   bartlett.test(mod.TR$res ~ X3)
   bartlett.test(mod.TR$res ~ X4)
   
-  # Boxplot de Xamentos vs resíduos:
+  # Boxplot de tramentos vs resíduos:
   # Se os boxplots forem semelhantes, há homocedasticidade.
   par(mfrow=c(1, 1))
   boxplot(mod.TR$res ~ X1)

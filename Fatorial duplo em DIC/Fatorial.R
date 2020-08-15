@@ -1,6 +1,6 @@
 # --------------------------------------------
 # Fatorial duplo em Delineamento Inteiramente ao Acaso
-# Elaborado por: Pablo Chang (16/07/2020)
+# Elaborado por: Pablo Chang (04/08/2020)
 # https://github.com/PabloChang/R
 # --------------------------------------------
 # O arquivo de dados e script devem estar numa mesma pasta; 
@@ -38,10 +38,12 @@ head(dados)
 # dados <- filter(dados, Profundidade==2)
 
 # Troque os nomes das colunas (entre "c(  )"):
-# FATOR1 = c(  ): para TRATamento;
+# FATOR1 = c(  ): para primeiro fator;
+# FATOR1 = c(  ): para segundo fator;
 # RESP = c(  ): para variável resposta a ser analisada.
 attach(dados) 
-dados <- data.frame(FATOR1 = as.character(Recipiente),
+dados <- data.frame(FATOR1 = 
+                      (Recipiente),
                     FATOR2 = as.character(Especie),
                     RESP = c(Altura)
                     )
@@ -232,7 +234,6 @@ plotres(mod)
   # Com isso, as próximas análises irão usar os
   # dados transformados!
 
-
   
 # --------------------------------------------
 # 5) TESTE DE HOMOCEDASTICIDADE DAS VARIÂNCIAS
@@ -308,20 +309,20 @@ library(ExpDes.pt)
 # Ensina como usar o comando:
 help(fat2.dic)
 
-#Mostrar a ordem dos fatores
-levels(FATOR1)
-levels(FATOR2)
+# Mostrar a ordem dos níveis de fatores:
+as.data.frame(levels(FATOR1))
+as.data.frame(levels(FATOR2))
 
 # Relatório completo do teste específico (defina em mcomp=" ").
 # ATENÇÃO: para dados transformados, não use estes valores médios!
 # Use apenas os resultados do teste (as letras).
 # Obs: se não tiver letras em Grupos, significa que não houve diferença.
-# Cuidado: nas colunas "Tratamentos", está por ordem dos fatores.
+# Cuidado: nas colunas "Tratamentos" está por ordem dos fatores.
 fat2.dic(FATOR1, 
          FATOR2, 
          RESP.TR, 
          quali=c(TRUE,TRUE), 
-         mcomp="sk",
+         mcomp="tukey",
          fac.names=c("Recipiente","Espécie"), 
          sigT = 0.05, 
          sigF = 0.05)
@@ -331,11 +332,71 @@ detach(package:ExpDes.pt, unload = TRUE)
 
 
 # --------------------------------------------
-# 10) COEFICIENTE DE VARIAÇÃO (CV) POR NÍVEL DE FATOR
+# 9) MÉDIAS POR NÍVEL DE FATOR (EM ESCALA ORIGINAL)
 # --------------------------------------------
-# Calcula o valor de CV (%) para cada nível de fator.
-# Ex: o CV do nível 3 do Fator 1.
-require(goeveg)
-cv(filter(dados,
-          FATOR1==3
-          )$RESP)*100
+# Mostra as médias específicas de acordo com 
+# cada nível de fator, em escala original.
+
+# FATOR2 - médias de cada nível:
+  # Digite, entre (), o nível desejado para FATOR2:
+  nivel <- ("e1")
+  require(dplyr)  
+  fac <- filter(dados, FATOR2==nivel) 
+  medias <- as.data.frame(
+    tapply(
+      fac$RESP, 
+      fac$FATOR1, mean)) 
+  medias
+  # Exportar a tabela para Excel:
+  write.csv2(medias, file = 
+               "Fatorial - Médias por nível de FATOR2.csv") 
+
+# FATOR2 - médias gerais:
+  mediageralF2 <- as.data.frame(
+    tapply(
+      dados$RESP, 
+      dados$FATOR2, 
+      mean)
+  )
+  mediageralF2
+  # Exportar para Excel:
+  write.csv2(mediageralF2, file = 
+               "Fatorial - Médias gerais por FATOR2.csv") 
+
+# FATOR1 - médias gerais:
+  mediageralF1 <- as.data.frame(
+    tapply(
+      dados$RESP, 
+      dados$FATOR1, 
+      mean)
+  )
+  mediageralF1
+  # Exportar para Excel:
+  write.csv2(mediageralF1, file = 
+               "Fatorial - Médias gerais por FATOR1.csv") 
+
+
+# --------------------------------------------
+# 10) COEFICIENTE DE VARIAÇÃO (CV) POR FATOR
+# --------------------------------------------
+# Calcula os valores de CV (%) para cada nível
+# de fator correspondente.
+  
+# FATOR2:
+  sdF2 <-as.data.frame(tapply(
+    dados$RESP, dados$FATOR2, sd))
+  desviopadraoF2 <- sdF2/mediageralF2*100
+  desviopadraoF2
+  # Exportar a tabela para Excel:
+  write.csv2(desviopadraoF2, file = 
+               "Fatorial - CV de FATOR2.csv")
+  
+# FATOR1:
+  sdF1 <-as.data.frame(tapply(
+    dados$RESP, dados$FATOR1, sd))
+  desviopadraoF1 <- sdF1/mediageralF1*100
+  desviopadraoF1
+  # Exportar a tabela para Excel:
+  write.csv2(desviopadraoF1, file = 
+               "Fatorial - CV de FATOR1.csv")
+  

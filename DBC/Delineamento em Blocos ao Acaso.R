@@ -39,6 +39,7 @@ head(dados)
 
 # Troque os nomes das colunas (entre "c(  )"):
 # TRAT = c(  ): para tratamento;
+# BLOCO = c(  ): para bloco;
 # RESP = c(  ): para variável resposta a ser analisada.
 attach(dados) 
 dados <- data.frame(TRAT = as.character(Densidade),
