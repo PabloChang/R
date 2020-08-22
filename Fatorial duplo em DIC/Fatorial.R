@@ -1,6 +1,6 @@
 # --------------------------------------------
 # Fatorial duplo em Delineamento Inteiramente ao Acaso
-# Elaborado por: Pablo Chang (04/08/2020)
+# Elaborado por: Pablo Chang (21/08/2020)
 # https://github.com/PabloChang/R
 # --------------------------------------------
 # O arquivo de dados e script devem estar numa mesma pasta; 
@@ -32,18 +32,17 @@ options(OutDec=",")
 head(dados)
 
 # Filtrar dados por categorias, quando existir:
-# Exemplo: mostrar somente dados da Profundidade 2.
-# (Para usar, exclua o "#" abaixo e modifique)
+  # Exemplo: mostrar somente dados da Profundidade 2.
+  # (Para usar, exclua o "#" abaixo e modifique)
 # require(dplyr)
 # dados <- filter(dados, Profundidade==2)
 
 # Troque os nomes das colunas (entre "c(  )"):
-# FATOR1 = c(  ): para primeiro fator;
-# FATOR1 = c(  ): para segundo fator;
-# RESP = c(  ): para variável resposta a ser analisada.
-attach(dados) 
-dados <- data.frame(FATOR1 = 
-                      (Recipiente),
+  # FATOR1 = c(  ): para primeiro fator;
+  # FATOR1 = c(  ): para segundo fator;
+  # RESP = c(  ): para variável resposta a ser analisada.
+  attach(dados) 
+dados <- data.frame(FATOR1 = as.character(Recipiente),
                     FATOR2 = as.character(Especie),
                     RESP = c(Altura)
                     )
@@ -64,7 +63,6 @@ head(dados)
 # r <- with(dados, which(RESP<0, arr.ind=TRUE))
 #  dados <- dados[-r, ]
 
- 
 # Anexa os dados na memória do R:
 attach(dados) 
 
@@ -399,4 +397,52 @@ detach(package:ExpDes.pt, unload = TRUE)
   # Exportar a tabela para Excel:
   write.csv2(desviopadraoF1, file = 
                "Fatorial - CV de FATOR1.csv")
+  
+  
+# --------------------------------------------
+# 11) DMS - Diferença Mínima Significativa do teste Tukey
+# --------------------------------------------
+# Valor que retrata a diferença mínima para que duas
+# médias tenham diferença significativa a 5%.
+
+# Cálculo do DMS para o Excel:
+  t.HSD <- TukeyHSD(mod.TR, ordered=TRUE)
+  write.csv2(t.HSD$`FATOR1:FATOR2`, file = 
+               "Fatorial - DMS.csv")
+
+# Abra o arquivo gerado, a primeira coluna é a comparação
+# entre duas médias separados por "-". Tem o formato:
+# "FATOR1:FATOR2-FATOR1:FATOR2"
+# Digite abaixo, entre (), a linha que possui valores iguais
+# de FATOR2 desejado:
+  lin <- (1670) # altere aqui
+  dms <- unname(0.5*diff(t.HSD$'FATOR1:FATOR2'[lin-1, 2:3]))
+  dms
+
+
+# Se os dados foram transformados em 4.1),
+# rode o comando abaixo:
+  LimSup <- mean(RESP.TR)
+  LimInf <- LimSup-dms
+
+# E rode apenas a opção que foi usada para realizar
+# a transformação inversa:
+
+# TR1. Raiz quadrada:
+  dms.sqrt <- (LimSup)^2-(LimInf)^2
+  dms.sqrt
+
+# TR2. Logarítmica:
+  dms.log <- exp(LimSup)-exp(LimInf)
+  dms.log
+
+# TR3. Recíproca:
+  dms.hip <- (LimSup)^(-1)-(LimInf)^(-1)
+  abs(dms.hip)
+
+# TR4. Box-Cox:
+  dms.bc <- ((LimSup*lambda.max)+1)^(1/lambda.max) -
+    ((LimInf*lambda.max)+1)^(1/lambda.max)
+  dms.bc
+
   
