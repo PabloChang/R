@@ -1,6 +1,6 @@
 # --------------------------------------------
 # Delineamento Inteiramente ao Acaso
-# Elaborado por: Pablo Chang (16/07/2020)
+# Elaborado por: Pablo Chang (02/09/2020)
 # https://github.com/PabloChang/R
 # --------------------------------------------
 # O arquivo de dados e script devem estar numa mesma pasta; 
@@ -350,4 +350,21 @@ write.csv2(teste, file =
               ((LimInf*lambda.max)+1)^(1/lambda.max)
     dms.bc
 
+    
+# --------------------------------------------
+# 10) Gráfico de barras de Tukey
+# --------------------------------------------
+# Precisa alterar a escala conforme seus dados.
+my_bar <- barplot(teste$Médias,
+                  ylim=c(0, 0.2), # min e máx de Y.
+                  beside=T,  
+                  col="seagreen3",
+                  names.arg = teste$Tratamentos,
+                  xlab="Densidade (g/cm³)",
+                  ylab="Massa fresca da raiz (g)")
+    
+# Letras do Tukey acima das barras:
+text(my_bar, 
+     teste$Média+0.01, # distância acima das barras
+     teste$Tukey, cex=1) 
 

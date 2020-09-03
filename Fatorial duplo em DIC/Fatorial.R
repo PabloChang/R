@@ -1,6 +1,6 @@
 # --------------------------------------------
 # Fatorial duplo em Delineamento Inteiramente ao Acaso
-# Elaborado por: Pablo Chang (21/08/2020)
+# Elaborado por: Pablo Chang (03/09/2020)
 # https://github.com/PabloChang/R
 # --------------------------------------------
 # O arquivo de dados e script devem estar numa mesma pasta; 
@@ -41,7 +41,7 @@ head(dados)
   # FATOR1 = c(  ): para primeiro fator;
   # FATOR1 = c(  ): para segundo fator;
   # RESP = c(  ): para variável resposta a ser analisada.
-  attach(dados) 
+attach(dados) 
 dados <- data.frame(FATOR1 = as.character(Recipiente),
                     FATOR2 = as.character(Especie),
                     RESP = c(Altura)
@@ -307,15 +307,18 @@ library(ExpDes.pt)
 # Ensina como usar o comando:
 help(fat2.dic)
 
-# Mostrar a ordem dos níveis de fatores:
+# Mostrar a ordem* dos níveis de fatores:
 as.data.frame(levels(FATOR1))
 as.data.frame(levels(FATOR2))
 
 # Relatório completo do teste específico (defina em mcomp=" ").
-# ATENÇÃO: para dados transformados, não use estes valores médios!
-# Use apenas os resultados do teste (as letras).
-# Obs: se não tiver letras em Grupos, significa que não houve diferença.
-# Cuidado: nas colunas "Tratamentos" está por ordem dos fatores.
+# ATENÇÃO: 
+# - Para dados transformados, não use estes valores médios!
+# - Use apenas os resultados do teste (as letras);
+# - Se for TR3, as letras são de MENOR para MAIOR;
+# - As colunas "Tratamentos" está por ordem* numérica;
+# - Pode copiar este relatório para Word, depois copiar
+#   apenas os resultados para Excel, e classificar em ordem.
 fat2.dic(FATOR1, 
          FATOR2, 
          RESP.TR, 
@@ -404,45 +407,96 @@ detach(package:ExpDes.pt, unload = TRUE)
 # --------------------------------------------
 # Valor que retrata a diferença mínima para que duas
 # médias tenham diferença significativa a 5%.
+# Cálculo do DMS:
+t.HSD <- TukeyHSD(mod.TR, ordered=TRUE)
 
-# Cálculo do DMS para o Excel:
-  t.HSD <- TukeyHSD(mod.TR, ordered=TRUE)
-  write.csv2(t.HSD$`FATOR1:FATOR2`, file = 
-               "Fatorial - DMS.csv")
+# Deve-se modificar manualmente os comandos abaixo
+# sobre comparação entre duas médias que tem o formato:
+# "FATOR1:FATOR2-FATOR1:FATOR2".
+# É fixado um dos níveis e comparado as 2 primeiras médias.
+# Ex¹: "r1:e1-r2:e1" que compara duas médias dentro de e1 (fixo);
+# Ex²: "r3:e1-r3:e2" que compara duas médias dentro de r3 (fixo);
+# Quando rodar os comandos, é normal que uma das duplas
+# apareça um erro. Apenas ignore.
 
-# Abra o arquivo gerado, a primeira coluna é a comparação
-# entre duas médias separados por "-". Tem o formato:
-# "FATOR1:FATOR2-FATOR1:FATOR2"
-# Digite abaixo, entre (), a linha que possui valores iguais
-# de FATOR2 desejado:
-  lin <- (1670) # altere aqui
-  dms <- unname(0.5*diff(t.HSD$'FATOR1:FATOR2'[lin-1, 2:3]))
+#FATOR2: Espécie
+  # e1
+  dF2_1 <- unname(0.5*diff(t.HSD$'FATOR1:FATOR2'["r1:e1-r2:e1", 2:3]))
+  dF2_1 <- unname(0.5*diff(t.HSD$'FATOR1:FATOR2'["r2:e1-r1:e1", 2:3]))
+  # e2
+  dF2_2 <- unname(0.5*diff(t.HSD$'FATOR1:FATOR2'["r1:e2-r2:e2", 2:3]))
+  dF2_2 <- unname(0.5*diff(t.HSD$'FATOR1:FATOR2'["r2:e2-r1:e2", 2:3]))
+
+#FATOR1: Recipiente
+  # r1
+  dF1_1 <- unname(0.5*diff(t.HSD$'FATOR1:FATOR2'["r1:e1-r1:e2", 2:3]))
+  dF1_1 <- unname(0.5*diff(t.HSD$'FATOR1:FATOR2'["r1:e2-r1:e1", 2:3]))
+  # r2
+  dF1_2 <- unname(0.5*diff(t.HSD$'FATOR1:FATOR2'["r2:e1-r2:e2", 2:3]))
+  dF1_2 <- unname(0.5*diff(t.HSD$'FATOR1:FATOR2'["r2:e2-r2:e1", 2:3]))
+  # r3
+  dF1_3 <- unname(0.5*diff(t.HSD$'FATOR1:FATOR2'["r3:e1-r3:e2", 2:3]))
+  dF1_3 <- unname(0.5*diff(t.HSD$'FATOR1:FATOR2'["r3:e2-r3:e1", 2:3]))
+
+# Gerar tabela de dms:
+dms <- data.frame(
+        Tratamentos = c(
+                      "Espécie", 
+                      "e1",
+                      "e2",
+                      "Recipiente",
+                      "r1",
+                      "r2",
+                      "r3"),
+                DMS = c(
+                      NA,  # FATOR2
+                      dF1_1, 
+                      dF1_2, 
+                      NA,  # FATOR1
+                      dF1_1,
+                      dF1_2,
+                      dF1_3),
+                stringsAsFactors = FALSE)
+
+# Os dados foram transformados em 4.1)?
+# Se NÃO, apenas rode o comando abaixo:
   dms
+  # Exportar a tabela para Excel:
+  write.csv2(dms, file = "Fatorial - DMS.csv")
 
-
-# Se os dados foram transformados em 4.1),
-# rode o comando abaixo:
+# Se SIM, rode o comando abaixo:
   LimSup <- mean(RESP.TR)
-  LimInf <- LimSup-dms
-
-# E rode apenas a opção que foi usada para realizar
-# a transformação inversa:
+  LimInf <- LimSup-dms$DMS
+  # E rode apenas a opção que foi usada para realizar
+  # a transformação inversa:
 
 # TR1. Raiz quadrada:
   dms.sqrt <- (LimSup)^2-(LimInf)^2
-  dms.sqrt
+  dms$DMS <- dms.sqrt
+  dms
+  # Exportar a tabela para Excel:
+  write.csv2(dms, file = "Fatorial - DMS.csv")
 
 # TR2. Logarítmica:
   dms.log <- exp(LimSup)-exp(LimInf)
-  dms.log
+  dms$DMS <- dms.log
+  dms
+  # Exportar a tabela para Excel:
+  write.csv2(dms, file = "Fatorial - DMS.csv")
 
 # TR3. Recíproca:
   dms.hip <- (LimSup)^(-1)-(LimInf)^(-1)
-  abs(dms.hip)
+  dms$DMS <- abs(dms.hip) 
+  dms
+  # Exportar a tabela para Excel:
+  write.csv2(dms, file = "Fatorial - DMS.csv")
 
 # TR4. Box-Cox:
   dms.bc <- ((LimSup*lambda.max)+1)^(1/lambda.max) -
     ((LimInf*lambda.max)+1)^(1/lambda.max)
-  dms.bc
+  dms$DMS <- dms.bc 
+  dms
+  # Exportar a tabela para Excel:
+  write.csv2(dms, file = "Fatorial - DMS.csv")
 
   
