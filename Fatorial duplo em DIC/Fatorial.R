@@ -50,6 +50,15 @@ dados <- data.frame(FATOR1 = as.character(Recipiente),
 # Comando para deletar observações com dados vazios:
 dados <- na.omit(dados)
 
+# Deletar valores negativos ou iguais a zero:
+if(min(dados$RESP)<= 0){
+  r <- with(dados, which(RESP<=0, arr.ind=TRUE))
+  dados <- dados[-r, ]
+  print("Deletado valores nulos ou negativos.")
+}else{
+  print("Não possui valores nulos ou negativos.")
+}
+
 # Mostra as 6 primeiras linhas para ver como ficou.
 head(dados)
 
@@ -57,11 +66,9 @@ head(dados)
   # RESP < x: deletar valores abaixo de x.
   # RESP > x: deletar valores acima de x.
   # RESP == x: deletar valores iguais a x.
-  # Para usar, exclua o "#" abaixo e modifique:
+  # Para usar, exclua o "#" nas duas linhas e modifique:
 # r <- with(dados, which(RESP==0, arr.ind=TRUE))
-#  dados <- dados[-r, ]
-# r <- with(dados, which(RESP<0, arr.ind=TRUE))
-#  dados <- dados[-r, ]
+# dados <- dados[-r, ]
 
 # Anexa os dados na memória do R:
 attach(dados) 

@@ -54,13 +54,13 @@ library(rstudioapi) # precisa ter instalado o pacote "rstudioapi"
 head(dados)
 
 # Deletar valores condicionais
-  # RESP < x: deletar valores abaixo de x.
-  # RESP > x: deletar valores acima de x.
-  # RESP == x: deletar valores iguais a x.
+  # Y < x: deletar valores abaixo de x.
+  # Y > x: deletar valores acima de x.
+  # Y == x: deletar valores iguais a x.
   # Para usar, exclua o "#" abaixo e modifique:
-# r <- with(dados, which(RESP<0, arr.ind=TRUE))
+# r <- with(dados, which(Y<0, arr.ind=TRUE))
 #  dados <- dados[-r, ]
-# r <- with(dados, which(RESP==0, arr.ind=TRUE))
+# r <- with(dados, which(Y==0, arr.ind=TRUE))
 #  dados <- dados[-r, ]
 
 # Anexar os dados na memória do R:

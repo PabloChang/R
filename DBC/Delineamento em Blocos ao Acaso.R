@@ -1,6 +1,6 @@
 # --------------------------------------------
 # Delineamento em Blocos ao Acaso
-# Elaborado por: Pablo Chang (02/09/2020)
+# Elaborado por: Pablo Chang (28/11/2020)
 # https://github.com/PabloChang/R
 # --------------------------------------------
 # O arquivo de dados e script devem estar numa mesma pasta; 
@@ -47,20 +47,27 @@ dados <- data.frame(TRAT = as.character(Densidade),
                     RESP = c(MassaFrescaDaRaiz)
                     )
 
-# Comando para deletar observações com dados vazios:
-dados <- na.omit(dados)
-
 # Mostra as 6 primeiras linhas para ver como ficou.
 head(dados)
 
-# Deletar valores condicionais
+# Deletar observações com dados vazios:
+dados <- na.omit(dados)
+
+# Deletar valores negativos ou iguais a zero:
+if(min(dados$RESP)<= 0){
+  r <- with(dados, which(RESP<=0, arr.ind=TRUE))
+  dados <- dados[-r, ]
+  print("Deletado valores nulos ou negativos.")
+}else{
+  print("Não possui valores nulos ou negativos.")
+}
+
+# Deletar valores condicionais:
   # RESP < x: deletar valores abaixo de x.
   # RESP > x: deletar valores acima de x.
   # RESP == x: deletar valores iguais a x.
-  # Para usar, exclua o "#" abaixo e modifique:
+  # Para usar, exclua o "#" nas duas linhas e modifique:
 # r <- with(dados, which(RESP<0, arr.ind=TRUE))
-#  dados <- dados[-r, ]
-# r <- with(dados, which(RESP==0, arr.ind=TRUE))
 #  dados <- dados[-r, ]
 
 # Anexar os dados na memória do R:
@@ -370,9 +377,8 @@ write.csv2(teste, file =
 # --------------------------------------------
 # 10) Gráfico de barras de Tukey
 # --------------------------------------------
-# Precisa alterar a escala conforme seus dados.
 my_bar <- barplot(teste$Médias,
-                  ylim=c(0, 0.2), # min e máx de Y.
+                  ylim=c(0, 1.3*max(teste$Médias)),
                   beside=T,  
                   col="seagreen3",
                   names.arg = teste$Tratamentos,
@@ -381,7 +387,7 @@ my_bar <- barplot(teste$Médias,
 
 # Letras do Tukey acima das barras:
 text(my_bar, 
-     teste$Média+0.01, # distância acima das barras
+     teste$Média+0.1*max(teste$Médias),
      teste$Tukey, cex=1) 
 
 
