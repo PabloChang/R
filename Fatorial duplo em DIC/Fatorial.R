@@ -421,8 +421,8 @@ t.HSD <- TukeyHSD(mod.TR, ordered=TRUE)
 # sobre comparação entre duas médias que tem o formato:
 # "FATOR1:FATOR2-FATOR1:FATOR2".
 # É fixado um dos níveis e comparado as 2 primeiras médias.
-# Ex¹: "r1:e1-r2:e1" que compara duas médias dentro de e1 (fixo);
-# Ex²: "r3:e1-r3:e2" que compara duas médias dentro de r3 (fixo);
+# Ex¹: "r1:e1-r2:e1" que compara duas primeiras médias dentro de e1 (fixo);
+# Ex²: "r3:e1-r3:e2" que compara duas primeiras médias dentro de r3 (fixo);
 # Quando rodar os comandos, é normal que uma das duplas
 # apareça um erro. Apenas ignore.
 

@@ -41,7 +41,7 @@ head(dados)
 # TRAT = as.character(  ): para tratamento;
 # RESP = c(  ): para variável resposta a ser analisada.
 attach(dados) 
-dados <- data.frame(TRAT = as.character(Tratamento), 
+dados <- data.frame(TRAT = as.character(Densidade), 
                     RESP = c(MassaFrescaDaRaiz)
                     )
 
@@ -361,18 +361,31 @@ write.csv2(teste, file =
 
     
 # --------------------------------------------
-# 10) Gráfico de barras de Tukey
+# 10) GRÁFICO DE BARRAS DE TUKEY
 # --------------------------------------------
 my_bar <- barplot(teste$Médias,
                   ylim=c(0, 1.3*max(teste$Médias)),
                   beside=T,  
-                  col="seagreen3",
+                  col="darkseagreen1",
                   names.arg = teste$Tratamentos,
                   xlab="Densidade (g/cm³)",
                   ylab="Massa fresca da raiz (g)")
-    
-# Letras do Tukey acima das barras:
-text(my_bar, 
-     teste$Média+0.1*max(teste$Médias),
-     teste$Tukey, cex=1) 
+
+# Barras de erro padrão médio
+mean.worm = tapply(RESP.TR, TRAT, mean)   # média
+sd.worm = tapply(RESP.TR, TRAT,sd)    # desvio padrão
+n.worm = tapply(RESP.TR, TRAT, length)  # número por grupo
+sem.worm = sd.worm/sqrt(n.worm) # erro padrão
+arrows(my_bar, 
+   mean.worm-sem.worm, 
+   my_bar, 
+   mean.worm + sem.worm, 
+   code = 3, 
+   angle = 90, 
+   length = 0.1)    
+
+# Letras do Tukey
+text(my_bar,
+     0.1*max(teste$Médias),
+     teste$Tukey, cex=1)
 
