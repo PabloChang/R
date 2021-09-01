@@ -1,35 +1,36 @@
-# --------------------------------------------
+# ____________________________________________
 # Regressão Linear Múltipla
-# Elaborado por: Pablo Chang (16/07/2020)
+# Elaborado por: Pablo Chang (25/07/21)
 # https://github.com/PabloChang/R
-# --------------------------------------------
+# ____________________________________________
 # O arquivo de dados e script devem estar numa mesma pasta; 
 # Os dados devem ser salvos em ".csv (separado por vírgulas)";
 # Não pode haver espaço e acentuação nos títulos, única guia;
 # Para rodar os comandos, use Ctrl + Enter em cada linha;
 # Ativar/desativar comentários: Ctrl + Shift + C.
 
-# --------------------------------------------
-# 1) LEITURA E PREPARAÇÃO DOS DADOS
-# --------------------------------------------
+# ____________________________________________
+# 1) LEITURA E PREPARAÇÃO DOS DADOS ----
+# ____________________________________________
 # Comando para definir a localização da pasta:
-library(rstudioapi) # precisa ter instalado o pacote "rstudioapi"
-  current_path = 
-    rstudioapi::getActiveDocumentContext()$path 
-  setwd(dirname(current_path ))
-  print( getwd() )
+# Precisa ter instalado o pacote "agricolae".
+{
+  require(agricolae)
+  current_path=rstudioapi::getActiveDocumentContext()$path 
+  setwd(dirname(current_path))
+  print(getwd())
+}
 
 # Troque o nome do arquivo de dados (entre " .csv"):
-  dados <- read.csv2(
-    "DadosExemploRLM.csv", 
+dados <- read.csv2(
+  "DadosExemploRLM.csv",
   header = T)
 
 # Troca os pontos dos gráficos por vírgula:
-  options(OutDec=",")
+options(OutDec=",")
 
 # Mostra as 6 primeiras linhas para visualização.
-# As colunas devem seguir a ordem: tratamento // resposta;
-  head(dados)
+head(dados)
   
 # Filtrar dados por categorias, quando existir:
 # Exemplo: mostrar somente dados da Profundidade 2.
@@ -42,16 +43,16 @@ library(rstudioapi) # precisa ter instalado o pacote "rstudioapi"
 # X2 = c(  ): para a segunda variável independente;
 # X3 ...
 # Y = c(  ): para variável resposta Y a ser analisada.
-  attach(dados) 
-  dados <- data.frame(X1 = c(cyl),
-                      X2 = c(disp),
-                      X3 = c(hp),
-                      X4 = c(wt),
-                      Y = c(mpg)
-  )
+{attach(dados) 
+dados <- data.frame(X1 = c(cyl),
+                    X2 = c(disp),
+                    X3 = c(hp),
+                    X4 = c(wt),
+                    Y = c(mpg)
+)
 
 # Mostra as 6 primeiras linhas para ver como ficou.
-head(dados)
+head(dados)}
 
 # Deletar valores condicionais
   # Y < x: deletar valores abaixo de x.
@@ -67,14 +68,10 @@ head(dados)
 attach(dados) 
 
 
-# --------------------------------------------
-# 2) RESUMO DESCRITIVO 
-# --------------------------------------------
-# Pacote "agricolae".
-# Caso não tenho instalado é só rodar: 
-# install.packages("agricolae")
-library(agricolae)
-
+# ____________________________________________
+# 2) RESUMO DESCRITIVO ----
+# ____________________________________________
+{
 # Cálculo dos Quartis
 quartil1 <- quantile(Y, 0.25)
 quartil2 <- quantile(Y, 0.5)
@@ -110,51 +107,69 @@ resumo <- data.frame(Estatística = c(
   ),
   stringsAsFactors = FALSE)
 resumo
+}
 
 # Exportar o Resumo Descritivo para Excel:
 write.csv2(resumo, 
            file = "RLM - Resumo Descritivo.csv") 
 
 
-# --------------------------------------------
-# 3) BOXPLOT 
-# --------------------------------------------
-# Boxplot geral, com a cruz representando a média.
-# Altere as cores e legendas entre aspas " ".
+# ____________________________________________
+# 3) BOXPLOT ----
+# ____________________________________________
+# Boxplot de Y. A cruz é a média.
+{
 require(graphics)
 boxplot(Y,
-        col="yellow",
-        outcol="blue",
+        col="yellow",  # cor do boxplot
+        outcol="blue", # cor de outlier
         ylab="Y")
 points(mean(Y),col="red",pch=3)
+}
 
 
-# --------------------------------------------
-# 4) Relação entre as variáveis
-# --------------------------------------------
-# Matriz de relação entre as variáveis com pontos:
-pairs(dados, col = 2, pch = 19)
+# ____________________________________________
+# 4) RELAÇÃO ENTRE AS VARIÁVEIS ----
+# ____________________________________________
+# Trocar nome das variáveis:
+{
+renomeado <- dados
+colnames(renomeado) <- 
+  c("cyl",  # X1
+    "disp", # X2
+    "hp",   # X3
+    "wt",   # X4
+    "mpg"   # Y
+    )
+}
 
-# Com cores e dendograma: 
-# Mostra a relação de proximidade:
-heatmap(abs(cor(dados)))
-
-# Mostra correlação linear de Pearson:
+# Correlação linear de Pearson:
 # Quanto mais próximo de +1, correlação positiva;
 # Quanto mais próximo de -1, correlação negativa.
-require(GGally)
-ggcorr(dados, label=T)
-# Config: https://rpubs.com/melinatarituba/353262
+{require(PerformanceAnalytics)
+chart.Correlation(renomeado, histogram=T)}
 
-# Com níveis de significância e histograma
-# * 5%  ** 1% *** 0,1%
-require(PerformanceAnalytics)
-chart.Correlation(dados, histogram=T)
+# Com cores e dendograma: 
+# Relação de proximidade entre variáveis:
+heatmap(abs(cor(renomeado)))
+
+# Com escala de cores e números:
+# Config: https://rpubs.com/melinatarituba/353262
+{
+require(ggplot2)
+require(GGally)
+require(plyr)
+require(reshape)
+ggcorr(renomeado, 
+       label=T,
+       label_round=3) # Casas decimais
+}
 
 
 # --------------------------------------------
 # 5) TESTE DE NORMALIDADE
 # --------------------------------------------
+{
 # Pacote com alguns testes:
 library(nortest)
 library(ExpDes)
@@ -167,6 +182,7 @@ mod = lm(Y ~ X1+X2+X3+X4)
 # Se o gráfico Normal Q-Q se assemelhar a uma reta crescente,
 # então existe normalidade.
 plotres(mod)
+}
 
 # Testes:
 # Se p-value > 0,05, os resíduos possuem distribuição normal.
@@ -175,7 +191,7 @@ ad.test(mod$res) # Anderson-Darling
 
 # Os dados são normais?
 # Se SIM, rode o comando abaixo e pule para a etapa 6).
-  Y.TR <- Y
+  {Y.TR <- Y
 # Se NÃO, faça a transformação em 5.1).
 
 # A falta de normalidade não introduz problema 
@@ -191,35 +207,35 @@ ad.test(mod$res) # Anderson-Darling
 # Faça os testes, até atingir a normalidade!
 
 # TR1. Raiz quadrada:
-  TR1 <- sqrt(Y)
+  {TR1 <- sqrt(Y)
   modTR1 = lm(TR1 ~ X1+X2+X3+X4)
   # Gráfico dos resíduos
-  plotres(modTR1)
+  plotres(modTR1)}
   # Testes
   shapiro.test(modTR1$res) # Shapiro-Wilk
   ad.test(modTR1$res) # Anderson-Darling
   
 # TR2. Logarítmica:
   # Obs: precisa excluir valores = 0.
-  TR2 <- log(Y)
+  {TR2 <- log(Y)
   modTR2 = lm(TR2 ~ X1+X2+X3+X4)
   # Gráfico dos resíduos
-  plotres(modTR2)
+  plotres(modTR2)}
   # Testes
   shapiro.test(modTR2$res) # Shapiro-Wilk
   ad.test(modTR2$res) # Anderson-Darling
   
 # TR3. Hiperbólica
-  TR3 <- 1/Y
+  {TR3 <- 1/Y
   modTR3 = lm(TR3 ~ X1+X2+X3+X4)
   # Gráfico dos resíduos
-  plotres(modTR3)
+  plotres(modTR3)}
   # Testes
   shapiro.test(modTR3$res) # Shapiro-Wilk
   ad.test(modTR3$res) # Anderson-Darling
   
 # TR4. Box-Cox
-  require(MASS)
+  {require(MASS)
   # Cálculo
   par(mfrow=c(1, 1))
   bc=boxcox(Y ~ X1+X2+X3+X4, data=dados, plotit=T)
@@ -228,48 +244,50 @@ ad.test(mod$res) # Anderson-Darling
   TR4 <- (Y^(lambda.max)-1)/lambda.max
   modTR4 = lm(TR4 ~ X1+X2+X3+X4)
   # Gráfico dos resíduos
-  plotres(modTR4)
+  plotres(modTR4)}
   # Testes
   shapiro.test(modTR4$res) # Shapiro-Wilk
   ad.test(modTR4$res) # Anderson-Darling
   
 # Digite o TR escolhido dentro de ( ):
   Y.TR <- 
-    (Y) #troque aqui, por exemplo: (TR2).
+    (Y) # troque aqui, por exemplo: (TR2).
   # Com isso, as próximas análises irão usar os
   # dados transformados!
-
+}
   
+
 # --------------------------------------------
 # 6) TESTE DE HOMOCEDASTICIDADE DAS VARIÂNCIAS
 # --------------------------------------------
-  # Isso implica que cada tratamento que está sendo 
-  # comparado pelo teste F, deve ter aproximadamente 
-  # a mesma variância para que a ANOVA tenha validade.
+# Isso implica que cada tratamento que está sendo 
+# comparado pelo teste F, deve ter aproximadamente 
+# a mesma variância para que a ANOVA tenha validade.
+{
+# Redefinição de dados:
+dados.TR <- data.frame(X1,
+                       X2,
+                       X3,
+                       X4,
+                       Y.TR)
+attach(dados.TR)
+mod.TR <- lm(Y.TR ~ X1+X2+X3+X4)
+}
   
-  # Redefinição de dados:
-  dados.TR <- data.frame(X1,
-                         X2,
-                         X3,
-                         X4,
-                         Y.TR)
-  attach(dados.TR)
-  mod.TR <- lm(Y.TR ~ X1+X2+X3+X4)
-  
-  # Teste de Bartlett:
-  # Se p-value > 0,05, há homogeneidade das variâncias.
-  bartlett.test(mod.TR$res ~ X1)
-  bartlett.test(mod.TR$res ~ X2)
-  bartlett.test(mod.TR$res ~ X3)
-  bartlett.test(mod.TR$res ~ X4)
-  
-  # Boxplot de tramentos vs resíduos:
-  # Se os boxplots forem semelhantes, há homocedasticidade.
-  par(mfrow=c(1, 1))
-  boxplot(mod.TR$res ~ X1)
-  boxplot(mod.TR$res ~ X2)
-  boxplot(mod.TR$res ~ X3)
-  boxplot(mod.TR$res ~ X4)
+# Teste de Bartlett:
+# Se p-value > 0,05, há homogeneidade das variâncias.
+bartlett.test(mod.TR$res ~ X1)
+bartlett.test(mod.TR$res ~ X2)
+bartlett.test(mod.TR$res ~ X3)
+bartlett.test(mod.TR$res ~ X4)
+
+# Boxplot de tramentos vs resíduos:
+# Se os boxplots forem semelhantes, há homocedasticidade.
+par(mfrow=c(1, 1))
+boxplot(mod.TR$res ~ X1)
+boxplot(mod.TR$res ~ X2)
+boxplot(mod.TR$res ~ X3)
+boxplot(mod.TR$res ~ X4)
 
 
 # --------------------------------------------
@@ -279,29 +297,26 @@ ad.test(mod$res) # Anderson-Darling
 # Ou seja, uma observação não influencia na outra
 # e não existe influência do tempo ou local da coleta.
   
-  # Teste de Durbin-Watson:
-  # Se p-value > 0,05, então há independência.
-  require(lmtest)
-  dwtest(mod.TR) 
-  
-  # Gráfico de resíduos padronizados vs valores ajustados
-  # (Standardized Residuals vs Fitted Values):
-  # Se os pontos forem aleatórios e espalhados,  
-  # então os dados são aleatórios e independentes;
-  # Se apresentar uma tendência, então há dependência.
-  plotres(mod.TR)
+# Teste de Durbin-Watson:
+# Se p-value > 0,05, então há independência.
+{require(lmtest)
+dwtest(mod.TR)}
+
+# Gráfico de resíduos padronizados vs valores ajustados
+# (Standardized Residuals vs Fitted Values):
+# Se os pontos forem aleatórios e espalhados,  
+# então os dados são aleatórios e independentes;
+# Se apresentar uma tendência, então há dependência.
+plotres(mod.TR)
 
   
 # --------------------------------------------
 # 8) ANOVA (análise de variância) da regressão
 # --------------------------------------------
-
 # Tabela ANOVA
 # Se Pr(>F) < 0,05, então existe efeito da 
 # variável explicativa (X) sobre a variável resposta (Y).
 anova(mod.TR)  
-
-
 # df=graus de liberdade. Pr=probabilidade 
 # de ser maior que F tabelado.
 
@@ -316,7 +331,7 @@ write.csv2(
 # 9) Coeficientes do modelo
 # --------------------------------------------
 # A equação de um modelo linear é:
-# y = a*x+b
+# y = b + a*X1 + b*X2 + c*X3 + d*X4
 
 # Cálculo dos coeficientes
 # Os coeficientes estão na coluna Estimate.
@@ -324,6 +339,7 @@ write.csv2(
 # b = (Intercept)
 # Se Pr(>|t|) < 0,05, então o coeficiente foi
 # significativo a 5%.
+{
   coefs <- as.data.frame(summary(mod.TR)[[4]])
   coefs.o <- as.data.frame(summary(mod)[[4]])
   coefs$Estimate <- coefs.o$Estimate
@@ -335,10 +351,20 @@ write.csv2(
     "Pr(>|t|)"
   ) 
   coefs
+}
 
 # Exportar tabela para Excel:
   write.csv2(coefs,file = 
     "RLM - Coeficientes do modelo.csv") 
+
+# Equação em texto:
+cat("mpg=",coefs$Estimativa[1],
+               "+(",coefs$Estimativa[2],")*cyl",
+               "+(",coefs$Estimativa[3],")*disp",
+               "+(",coefs$Estimativa[4],")*hp",
+               "+(",coefs$Estimativa[5],")*wt",
+    sep="")
+
 
 # --------------------------------------------
 # 10) Intervalos de confiança

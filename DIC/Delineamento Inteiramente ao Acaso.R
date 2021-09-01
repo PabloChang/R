@@ -1,23 +1,25 @@
-# --------------------------------------------
-# Delineamento Inteiramente ao Acaso
-# Elaborado por: Pablo Chang (02/09/2020)
+# ____________________________________________
+# Delineamento Inteiramente ao Acaso 
+# Elaborado por: Pablo Chang (01/09/2021)
 # https://github.com/PabloChang/R
-# --------------------------------------------
+# ____________________________________________
 # O arquivo de dados e script devem estar numa mesma pasta; 
 # Os dados devem ser salvos em ".csv (separado por vírgulas)";
 # Não pode haver espaço e acentuação nos títulos, única guia;
 # Para rodar os comandos, use Ctrl + Enter em cada linha;
 # Ativar/desativar comentários: Ctrl + Shift + C.
 
-# --------------------------------------------
-# 1) LEITURA E PREPARAÇÃO DOS DADOS
-# --------------------------------------------
+# ____________________________________________
+# 1) LEITURA E PREPARAÇÃO DOS DADOS ----
+# ____________________________________________
+# Precisa ter instalado o pacote "agricolae";
 # Comando para definir a localização da pasta:
-library(rstudioapi) # precisa ter instalado o pacote "rstudioapi"
-  current_path =
-    rstudioapi::getActiveDocumentContext()$path
+{
+  require(agricolae)
+  current_path=rstudioapi::getActiveDocumentContext()$path
   setwd(dirname(current_path))
   print(getwd())
+}
 
 # Troque o nome do arquivo de dados (entre " .csv"):
 dados <- read.csv2(
@@ -40,6 +42,7 @@ head(dados)
 # Troque os nomes das colunas:
 # TRAT = as.character(  ): para tratamento;
 # RESP = c(  ): para variável resposta a ser analisada.
+{
 attach(dados) 
 dados <- data.frame(TRAT = as.character(Densidade), 
                     RESP = c(MassaFrescaDaRaiz)
@@ -47,6 +50,7 @@ dados <- data.frame(TRAT = as.character(Densidade),
 
 # Mostra as 6 primeiras linhas para ver como ficou.
 head(dados)
+}
 
 # Deletar observações com dados vazios:
 dados <- na.omit(dados)
@@ -71,62 +75,61 @@ if(min(dados$RESP)<= 0){
 # Anexar os dados na memória do R:
 attach(dados) 
 
-# --------------------------------------------
-# 2) RESUMO DESCRITIVO 
-# --------------------------------------------
-# Pacote "agricolae".
-# Caso não tenho instalado é só rodar: 
-# install.packages("agricolae")
-library(agricolae)
 
-# Cálculo dos Quartis
-quartil1 <- quantile(RESP, 0.25)
-quartil2 <- quantile(RESP, 0.5)
-quartil3 <- quantile(RESP, 0.75)
-
-# Resumo descritivo
-resumo <- data.frame(Estatística = c(
-                      "Mínimo", 
-                      "1º Quartil",
-                      "Mediana",
-                      "Média",
-                      "3º Quartil",
-                      "Máximo",
-                      "Variância",
-                      "Desvio Padrão",
-                      "Coeficiente de Variação (%)",
-                      "Assimetria",
-                      "Curtose",
-                      "Tamanho da Amostra" ),
-                      Resultado = c(
-                        min(RESP), 
-                        quartil1[[1]], 
-                        quartil2[[1]],
-                        mean(RESP),
-                        quartil3[[1]],
-                        max(RESP),
-                        var(RESP),
-                        sd(RESP),
-                        100*sd(RESP)/mean(RESP),
-                        skewness(RESP),
-                        kurtosis(RESP),
-                        length(RESP)
-                      ),
-                      stringsAsFactors = FALSE)
-resumo
+# ____________________________________________
+# 2) RESUMO DESCRITIVO ----
+# ____________________________________________
+{
+  # Cálculo dos Quartis
+  quartil1 <- quantile(RESP, 0.25)
+  quartil2 <- quantile(RESP, 0.5)
+  quartil3 <- quantile(RESP, 0.75)
+  
+  # Resumo descritivo
+  resumo <- data.frame(Estatística = c(
+    "Mínimo", 
+    "1º Quartil",
+    "Mediana",
+    "Média",
+    "3º Quartil",
+    "Máximo",
+    "Variância",
+    "Desvio Padrão",
+    "Coeficiente de Variação (%)",
+    "Assimetria",
+    "Curtose",
+    "Tamanho da Amostra" ),
+    Resultado = c(
+      min(RESP), 
+      quartil1[[1]], 
+      quartil2[[1]],
+      mean(RESP),
+      quartil3[[1]],
+      max(RESP),
+      var(RESP),
+      sd(RESP),
+      100*sd(RESP)/mean(RESP),
+      skewness(RESP),
+      kurtosis(RESP),
+      length(RESP)
+    ),
+    stringsAsFactors = FALSE)
+  resumo
+}
 
 # Exportar o Resumo Descritivo para Excel:
-# Obs: antes de rodar novamente, feche o arquivo.
+# Obs: antes de rodar novamente, feche o arquivo Excel.
 write.csv2(resumo, 
            file = "DIC - Resumo Descritivo.csv") 
 
 
-# --------------------------------------------
-# 3) BOXPLOT 
-# --------------------------------------------
+# ____________________________________________
+# 3) BOXPLOT ----
+# ____________________________________________
 # Boxplot geral, com a cruz representando a média.
 # Altere as cores e legendas entre aspas " ".
-  require(graphics)
+{
+require(graphics)
   boxplot(RESP,
       col="yellow",
       outcol="blue",
@@ -134,19 +137,23 @@ write.csv2(resumo,
       outline=FALSE,
       frame=FALSE)
     points(mean(RESP),col="red",pch=3)
-
+}
+    
 # Boxplot para cada tratamento
+{
   boxplot(RESP ~ TRAT,
       col="skyblue1",
       outcol="blue",
       xlab="Densidade (g/cm³)",
       ylab="Massa fresca da raiz (g)")
   points(tapply(RESP,TRAT,mean),col="red",pch=3)
+}
 
     
-# --------------------------------------------
-# 4) TESTE DE NORMALIDADE
-# --------------------------------------------
+# ____________________________________________
+# 4) TESTE DE NORMALIDADE ----
+# ____________________________________________
+{
 # Pacote com alguns testes:
 library(nortest)
 library(ExpDes)
@@ -163,6 +170,7 @@ mod = aov(RESP ~ TRAT)
 # Se o gráfico Normal Q-Q se assemelhar a uma reta crescente,
 # então existe normalidade.
 plotres(mod)
+}
 
 # Testes:
 # Se p-value > 0,05, os resíduos possuem distribuição normal.
@@ -171,118 +179,126 @@ plotres(mod)
 
 # Os resíduos são normais?
   # Se SIM, rode o comando abaixo e pule para a etapa 5).
-    RESP.TR <- RESP
+    {RESP.TR <- RESP
   # Se NÃO, faça a transformação em 4.1).
-
-
-# --------------------------------------------
-# 4.1) TRANSFORMAÇÃO DE DADOS NÃO-NORMAIS
-# --------------------------------------------
+      
+      
+# ____________________________________________
+# 4.1) TRANSFORMAÇÃO DE DADOS NÃO-NORMAIS ----
+# ____________________________________________
 # Faça os testes, até atingir a normalidade!
-  
+
 # TR1. Raiz quadrada:
-  TR1 <- sqrt(RESP)
-  modTR1 = aov(TR1 ~ TRAT)
-  # Gráfico dos resíduos
-  plotres(modTR1)
-  # Testes
-  shapiro.test(modTR1$res) # Shapiro-Wilk
-  ad.test(modTR1$res) # Anderson-Darling
-  
+{TR1 <- sqrt(RESP)
+modTR1 = aov(TR1 ~ TRAT)
+# Gráfico dos resíduos
+plotres(modTR1)}
+# Testes
+shapiro.test(modTR1$res) # Shapiro-Wilk
+ad.test(modTR1$res) # Anderson-Darling
+
 # TR2. Logarítmica:
 # Obs: precisa excluir valores = 0.
-  TR2 <- log(RESP)
-  modTR2 = aov(TR2 ~ TRAT)
-  # Gráfico dos resíduos
-  plotres(modTR2)
-  # Testes
-  shapiro.test(modTR2$res) # Shapiro-Wilk
-  ad.test(modTR2$res) # Anderson-Darling
-  
+{TR2 <- log(RESP)
+modTR2 = aov(TR2 ~ TRAT)
+# Gráfico dos resíduos
+plotres(modTR2)}
+# Testes
+shapiro.test(modTR2$res) # Shapiro-Wilk
+ad.test(modTR2$res) # Anderson-Darling
+
 # TR3. Hiperbólica
-  TR3 <- 1/RESP
-  modTR3 = aov(TR3 ~ TRAT)
-  # Gráfico dos resíduos
-  plotres(modTR3)
-  # Testes
-  shapiro.test(modTR3$res) # Shapiro-Wilk
-  ad.test(modTR3$res) # Anderson-Darling
-  
+{TR3 <- 1/RESP
+modTR3 = aov(TR3 ~ TRAT)
+# Gráfico dos resíduos
+plotres(modTR3)}
+# Testes
+shapiro.test(modTR3$res) # Shapiro-Wilk
+ad.test(modTR3$res) # Anderson-Darling
+
 # TR4. Box-Cox
-  require(MASS)
-  # Cálculo
-  par(mfrow=c(1, 1))
-  bc=boxcox(RESP ~ TRAT, data=dados, plotit=T)
-  lambda.max <- bc$x[which.max(bc$y)]
-  lambda.max # Se for próximo de zero, usar logarítmico (TR2).
-  TR4 <- (RESP^(lambda.max)-1)/lambda.max
-  modTR4 = aov(TR4 ~ TRAT)
-  # Gráfico dos resíduos
-  plotres(modTR4)
-  # Testes
-  shapiro.test(modTR4$res) # Shapiro-Wilk
-  ad.test(modTR4$res) # Anderson-Darling
-  
+{require(MASS)
+# Cálculo
+par(mfrow=c(1, 1))
+bc=boxcox(RESP ~ TRAT, data=dados, plotit=T)
+lambda.max <- bc$x[which.max(bc$y)]
+lambda.max # Se for próximo de zero, usar logarítmico (TR2).
+TR4 <- (RESP^(lambda.max)-1)/lambda.max
+modTR4 = aov(TR4 ~ TRAT)
+# Gráfico dos resíduos
+plotres(modTR4)}
+# Testes
+shapiro.test(modTR4$res) # Shapiro-Wilk
+ad.test(modTR4$res) # Anderson-Darling
+
 # Digite o TR escolhido dentro de ( ):
-  RESP.TR <- 
-    (RESP) #troque aqui, por exemplo: (TR2).
-  # Com isso, as próximas análises irão usar os
-  # dados transformados!
+RESP.TR <- 
+(TR4) # troque aqui, por exemplo: (TR2).
+# Com isso, as próximas análises irão usar os
+# dados transformados!
+
+}
   
 
-# --------------------------------------------
-# 5) TESTE DE HOMOCEDASTICIDADE DAS VARIÂNCIAS
-# --------------------------------------------
+# ____________________________________________
+# 5) TESTE DE HOMOCEDASTICIDADE DAS VARIÂNCIAS ----
+# ____________________________________________
 # Isso implica que cada tratamento que está sendo 
 # comparado pelo teste F, deve ter aproximadamente 
 # a mesma variância para que a ANOVA tenha validade.
-  
-  # Redefinição de dados:
+# Redefinição de dados:
+{
   dados.TR <- data.frame(TRAT, RESP.TR)
   attach(dados.TR)
   TRAT <- as.factor(TRAT)
   RESP.TR <- as.numeric(RESP.TR)
   mod.TR <- aov(RESP.TR ~ TRAT)
-   
-  # Teste de Bartlett:
-  # Se p-value > 0,05, há homogeneidade das variâncias.
-  bartlett.test(mod.TR$res ~ TRAT) 
+}
 
-  # Boxplot de tratamentos vs resíduos:
-  # Se os boxplots forem semelhantes, há homocedasticidade.
+# Teste de Bartlett:
+# Se p-value > 0,05, há homogeneidade das variâncias.
+bartlett.test(mod.TR$res ~ TRAT)
+
+
+# Boxplot de tratamentos vs resíduos:
+# Se os boxplots forem semelhantes, há homocedasticidade.
+{
   par(mfrow=c(1, 1))
   boxplot(mod.TR$res ~ TRAT)
+}
   
   
-# --------------------------------------------
-# 6) TESTE DE INDEPENDÊNCIA
-# --------------------------------------------
+# ____________________________________________
+# 6) TESTE DE INDEPENDÊNCIA ----
+# ____________________________________________
 # Os dados são aleatórios e independentes.
 # Ou seja, uma observação não influencia na outra
 # e não existe influência do tempo ou local da coleta.
   
-  # Teste de Durbin-Watson:
-  # Se p-value > 0,05, então há independência.
-  require(lmtest)
-  dwtest(mod.TR) 
+# Teste de Durbin-Watson:
+# Se p-value > 0,05, então há independência.
+{
+require(lmtest)
+dwtest(mod.TR)
+}
 
-  # Gráfico de resíduos padronizados vs valores ajustados
-  # (Standardized Residuals vs Fitted Values):
-  # Se os pontos forem aleatórios e espalhados,  
-  # então os dados são aleatórios e independentes;
-  # Se apresentar uma tendência, então há dependência.
-  plotres(mod.TR)
+# Gráfico de resíduos padronizados vs valores ajustados
+# (Standardized Residuals vs Fitted Values):
+# Se os pontos forem aleatórios e espalhados,  
+# então os dados são aleatórios e independentes;
+# Se apresentar uma tendência, então há dependência.
+plotres(mod.TR)
   
   
-# --------------------------------------------
-# 7) ANOVA - análise de variância
-# --------------------------------------------
+# ____________________________________________
+# 7) ANOVA - análise de variância ----
+# ____________________________________________
 # Tabela ANOVA
 # Se Pr(>F) < 0,05, então existe diferença
 # significativa a 5%.
-  summary(mod.TR)                        
 # df=graus de liberdade. Pr=probabilidade 
 # de ser maior que F tabelado.
+summary(mod.TR) 
 
 # Exportar tabela ANOVA para Excel:
 write.csv2(
@@ -291,16 +307,17 @@ write.csv2(
     "DIC - Tabela ANOVA.csv") 
 
 
-# --------------------------------------------
-# 8) TESTE DE COMPARAÇÃO DE MÉDIAS
-# --------------------------------------------
+# ____________________________________________
+# 8) TESTE DE COMPARAÇÃO DE MÉDIAS ----
+# ____________________________________________
 # Teste Tukey, SNL (Student-Newman-Keuls), Duncan, t e 
 # Scott-Knott a 5% de significância.
-  require(easyanova)
-  require(dplyr)
-
 # Tabela usando dados transformados (quando for o caso),
 # mas mostrando médias originais:
+# Aviso: caso der erro, tente mudar o nome das variáveis!
+{  
+  require(easyanova)
+  require(dplyr)  
   par(mfrow=c(1, 1))
   ttuk <- easyanova::ea1(dados.TR, design=1, plot=2)
   teste <- arrange(ttuk$Means, ttuk$Means$treatment)
@@ -317,75 +334,123 @@ write.csv2(
     "t",
     "Scott-Knott"
   ) 
-teste
+  teste
+}
 
 # Exportar para Excel:
 write.csv2(teste, file = 
              "DIC - Testes de Comparação de Médias.csv") 
 
 
-# --------------------------------------------
-# 9) DMS - Diferença Mínima Significativa do teste Tukey
-# --------------------------------------------
+# ____________________________________________
+# 9) DMS - Diferença Mínima Significativa do teste Tukey ----
+# ____________________________________________
 # Valor que retrata a diferença mínima para que duas
 # médias tenham diferença significativa a 5%.
 
-# Cálculo do DMS:
+# Cálculo do DMS com transformação inversa:
+{  
   t.HSD <- TukeyHSD(mod.TR, ordered=TRUE)
   dms <- unname(0.5*diff(t.HSD$TRAT[1, 2:3]))
   LimSup <- mean(RESP.TR) 
   LimInf <- LimSup-dms  
-
-# Os dados foram transformados em 4.1)?
-  # Se NÃO, apenas rode o comando abaixo:
-    dms
-  
-  # Se SIM, escolha o TR usado para
-  # realizar a transformação inversa:
+  if(RESP.TR != RESP){
+    
     # TR1. Raiz quadrada:
-    dms.sqrt <- (LimSup)^2-(LimInf)^2 
-    dms.sqrt
-  
+    if(RESP.TR == TR1){  
+      dms <- (LimSup)^2-(LimInf)^2 
+    }
+    
     # TR2. Logarítmica:
-    dms.log <- exp(LimSup)-exp(LimInf) 
-    dms.log
-  
+    if(RESP.TR == TR2){  
+      dms <- exp(LimSup)-exp(LimInf) 
+    }
+    
     # TR3. Hiperbólica:
-    dms.hip <- (LimSup)^(-1)-(LimInf)^(-1)
-    dms.hip
+    if(RESP.TR == TR3){  
+      dms <- (LimSup)^(-1)-(LimInf)^(-1)
+    }
     
     # TR4. Box-Cox:
-    dms.bc <- ((LimSup*lambda.max)+1)^(1/lambda.max) -
-              ((LimInf*lambda.max)+1)^(1/lambda.max)
-    dms.bc
-
+    if(RESP.TR == TR4){
+      dms <- ((LimSup*lambda.max)+1)^(1/lambda.max) -
+        ((LimInf*lambda.max)+1)^(1/lambda.max)
+    }
+  }
+}
+dms # Valor do DMS
     
-# --------------------------------------------
-# 10) GRÁFICO DE BARRAS DE TUKEY
-# --------------------------------------------
-my_bar <- barplot(teste$Médias,
-                  ylim=c(0, 1.3*max(teste$Médias)),
-                  beside=T,  
-                  col="darkseagreen1",
-                  names.arg = teste$Tratamentos,
-                  xlab="Densidade (g/cm³)",
-                  ylab="Massa fresca da raiz (g)")
 
-# Barras de erro padrão médio
-mean.worm = tapply(RESP.TR, TRAT, mean)   # média
-sd.worm = tapply(RESP.TR, TRAT,sd)    # desvio padrão
-n.worm = tapply(RESP.TR, TRAT, length)  # número por grupo
-sem.worm = sd.worm/sqrt(n.worm) # erro padrão
-arrows(my_bar, 
-   mean.worm-sem.worm, 
-   my_bar, 
-   mean.worm + sem.worm, 
-   code = 3, 
-   angle = 90, 
-   length = 0.1)    
+# ____________________________________________
+# 10) TABELA RESUMIDA (COM TESTE TUKEY) ----
+# ____________________________________________
+{
+  tabela <- data.frame(
+    Tratamentos = c(
+      teste$Tratamentos, 
+      "Média Geral",
+      "CV (%)",
+      "DMS"),
+    Médias = c(
+      teste$Médias,
+      mean(RESP),
+      100*sd(RESP)/mean(RESP),
+      dms),
+    Tukey =
+      c(
+        as.character(teste$Tukey),
+        " ",
+        " ",
+        " "),
+    stringsAsFactors = FALSE)
+  tabela  
+}
 
-# Letras do Tukey
-text(my_bar,
-     0.1*max(teste$Médias),
-     teste$Tukey, cex=1)
+# Exportar para Excel:
+# Pode acumular resultados de testes anteriores num mesmo arquivo.
+# Pode colocar títulos diferentes em "TÍTULO":
+if(file.exists("DIC - Tabela Resumida.csv")){
+  tabela.comb <- read.csv2(file="DIC - Tabela Resumida.csv")
+  tabela.comb <- cbind(tabela.comb, "TÍTULO", tabela)
+  write.csv2(tabela.comb, file = 
+               "DIC - Tabela Resumida.csv")
+}else{
+  write.csv2(tabela, file = 
+               "DIC - Tabela Resumida.csv")
+}
+
+
+# ____________________________________________
+# 11) GRÁFICO DE BARRAS DE TUKEY ----
+# ____________________________________________
+{
+  my_bar <- barplot(teste$Médias,
+                    ylim=c(0, 1.3*max(teste$Médias)),
+                    beside=T,  
+                    col="darkseagreen1",
+                    names.arg = teste$Tratamentos, # para renomear*
+                    xlab="Anos de avaliação",
+                    ylab="Médias de notas")
+  
+  # Barras de erro padrão médio
+  mean.worm = tapply(RESP, TRAT, mean)   # média
+  sd.worm = tapply(RESP, TRAT,sd)    # desvio padrão
+  n.worm = tapply(RESP, TRAT, length)  # número por grupo
+  sem.worm = sd.worm/sqrt(n.worm) # erro padrão
+  arrows(my_bar, 
+         mean.worm-sem.worm, 
+         my_bar, 
+         mean.worm + sem.worm, 
+         code = 3, 
+         angle = 90, 
+         length = 0.1)    
+  
+  # Letras do Tukey
+  text(my_bar,
+       0.1*max(teste$Médias),
+       teste$Tukey, cex=1)
+}
+
+# * Caso quiser renomear as variáveis, substituir "teste$Tratamentos"
+# por "c(novonome1, novonome2, ..., n_variáveis)".
 

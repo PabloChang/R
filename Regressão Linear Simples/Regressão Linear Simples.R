@@ -13,11 +13,13 @@
 # 1) LEITURA E PREPARAÇÃO DOS DADOS
 # --------------------------------------------
 # Comando para definir a localização da pasta:
-library(rstudioapi) # precisa ter instalado o pacote "rstudioapi"
+{
+  library(rstudioapi) # precisa ter instalado o pacote "rstudioapi"
   current_path = 
     rstudioapi::getActiveDocumentContext()$path 
   setwd(dirname(current_path ))
   print( getwd() )
+}
 
 # Troque o nome do arquivo de dados (entre " .csv"):
   dados <- read.csv2(
@@ -116,25 +118,29 @@ write.csv2(resumo,
 # --------------------------------------------
 # Boxplot geral, com a cruz representando a média.
 # Altere as cores e legendas entre aspas " ".
-require(graphics)
-boxplot(Y,
-        col="yellow",
-        outcol="blue",
-        ylab="Massa fresca da raiz (g)")
-points(mean(Y),col="red",pch=3)
+{
+  require(graphics)
+  boxplot(Y,
+          col="yellow",
+          outcol="blue",
+          ylab="Massa fresca da raiz (g)")
+  points(mean(Y),col="red",pch=3)
+}
 
 # Boxplot para cada tratamento
-boxplot(Y ~ X,
-        col="skyblue1",
-        outcol="blue",
-        xlab="Densidade (g/cm³)",
-        ylab="Massa fresca da raiz (g)")
-points(tapply(Y,X,mean),col="red",pch=3)
-
+{
+  boxplot(Y ~ X,
+          col="skyblue1",
+          outcol="blue",
+          xlab="Densidade (g/cm³)",
+          ylab="Massa fresca da raiz (g)")
+  points(tapply(Y,X,mean),col="red",pch=3)
+}
 
 # --------------------------------------------
 # 4) TESTE DE NORMALIDADE
 # --------------------------------------------
+{
 # Pacote com alguns testes:
 library(nortest)
 library(ExpDes)
@@ -147,16 +153,12 @@ mod = lm(Y ~ X)
 # Se o gráfico Normal Q-Q se assemelhar a uma reta crescente,
 # então existe normalidade.
 plotres(mod)
+}
 
 # Testes:
 # Se p-value > 0,05, os resíduos possuem distribuição normal.
 shapiro.test(mod$res) # Shapiro-Wilk
 ad.test(mod$res) # Anderson-Darling
-
-# Os dados são normais?
-# Se SIM, rode o comando abaixo e pule para a etapa 5).
-  Y.TR <- Y
-# Se NÃO, faça a transformação em 4.1).
 
 # A falta de normalidade não introduz problema 
 # na estimação dos parâmetros, mas sim,
@@ -164,62 +166,6 @@ ad.test(mod$res) # Anderson-Darling
 # intervalos de confiança e dos testes de 
 # hipótese.
 
-
-# --------------------------------------------
-# 4.1) TRANSFORMAÇÃO DE DADOS NÃO-NORMAIS
-# --------------------------------------------
-# Faça os testes, até atingir a normalidade!
-
-# TR1. Raiz quadrada:
-  TR1 <- (Y)^2
-  modTR1 = lm(TR1 ~ X)
-  # Gráfico dos resíduos
-  plotres(modTR1)
-  # Testes
-  shapiro.test(modTR1$res) # Shapiro-Wilk
-  ad.test(modTR1$res) # Anderson-Darling
-  
-# TR2. Logarítmica:
-  # Obs: precisa excluir valores = 0.
-  TR2 <- log(Y)
-  modTR2 = lm(TR2 ~ X)
-  # Gráfico dos resíduos
-  plotres(modTR2)
-  # Testes
-  shapiro.test(modTR2$res) # Shapiro-Wilk
-  ad.test(modTR2$res) # Anderson-Darling
-  
-# TR3. Hiperbólica
-  TR3 <- 1/Y
-  modTR3 = lm(TR3 ~ X)
-  # Gráfico dos resíduos
-  plotres(modTR3)
-  # Testes
-  shapiro.test(modTR3$res) # Shapiro-Wilk
-  ad.test(modTR3$res) # Anderson-Darling
-  
-# TR4. Box-Cox
-  require(MASS)
-  # Cálculo
-  par(mfrow=c(1, 1))
-  bc=boxcox(Y ~ X, data=dados, plotit=T)
-  lambda.max <- bc$x[which.max(bc$y)]
-  lambda.max # Se for próximo de zero, usar logarítmico (TR2).
-  TR4 <- (Y^(lambda.max)-1)/lambda.max
-  modTR4 = lm(TR4 ~ X)
-  # Gráfico dos resíduos
-  plotres(modTR4)
-  # Testes
-  shapiro.test(modTR4$res) # Shapiro-Wilk
-  ad.test(modTR4$res) # Anderson-Darling
-  
-# Digite o TR escolhido dentro de ( ):
-  Y.TR <- 
-    (Y) #troque aqui, por exemplo: (TR2).
-  # Com isso, as próximas análises irão usar os
-  # dados transformados!
-
-  
 # --------------------------------------------
 # 5) TESTE DE HOMOCEDASTICIDADE DAS VARIÂNCIAS
 # --------------------------------------------
@@ -228,9 +174,9 @@ ad.test(mod$res) # Anderson-Darling
   # a mesma variância para que a ANOVA tenha validade.
   
   # Redefinição de dados:
-  dados.TR <- data.frame(X, Y.TR)
+  dados.TR <- data.frame(X, Y)
   attach(dados.TR)
-  mod.TR <- lm(Y.TR ~ X)
+  mod.TR <- lm(Y ~ X)
 
   # Teste de Bartlett:
   # Se p-value > 0,05, há homogeneidade das variâncias.
@@ -294,10 +240,7 @@ write.csv2(
 # b = (Intercept)
 # Se Pr(>|t|) < 0,05, então o coeficiente foi
 # significativo a 5%.
-  coefs <- as.data.frame(summary(mod.TR)[[4]])
-  coefs.o <- as.data.frame(summary(mod)[[4]])
-  coefs$Estimate <- coefs.o$Estimate
-  coefs$`Std. Error` <- coefs.o$`Std. Error`
+  coefs <- as.data.frame(summary(mod)[[4]])
   colnames(coefs) <- c(
     "Estimativa", 
     "Erro padrão",
@@ -320,63 +263,23 @@ write.csv2(
 # rode o seguinte comando e pule para 10)
   ic
 
-# a) Se os dados foram transformados em 4.1),
-# Rode apenas a opção que foi usada para fazer
-# a transformação inversa:
-  # 1. Raiz quadrada:  
-  ic <- (ic)^2
-  ic  
-  
-  # 2. Logarítmica:  
-  ic <- exp(ic)
-  ic 
-
-  # 3. Hiperbólica:  
-  ic <- (ic)^(-1)
-  ic 
-
-  # 4. Box-Cox:  
-  ic <- ((ic*lambda.max)+1)^(1/lambda.max)
-  ic 
-
 
 # --------------------------------------------
 # 10) Coeficientes de determinação (R²)
 # --------------------------------------------
-  
-  # R²
-  erro_puro <- lm(Y.TR ~ factor(X))
-  summary(mod.TR)$r.squared/summary(erro_puro)$r.squared
+{
+erro_puro <- lm(Y ~ factor(X))
+R2 <- summary(mod.TR)$r.squared/summary(erro_puro)$r.squared
+R2 # R²
+}
 
-  # R² ajustado
-  summary(mod.TR)$adj.r.squared/summary(erro_puro)$adj.r.squared
-  
-
-# --------------------------------------------
-# 11) Gráfico da regressão
-# --------------------------------------------
-# Gráfico de dispersão (cinza):
-  par(mfrow=c(1, 1))
-  plot (Y ~ X,
-      xlab="Densidade (g/cm³)", 
-      ylab="Massa fresca da raiz (g)",
-      pch=19, col="gray", data = dados)
-
-# Linha de tendência (vermelho):
-abline(mod, col="red", lwd=2) 
-
-# Médias (azul):
-  u <- as.data.frame(tapply(Y, X, mean))
-  options(OutDec=".")
-  v <- factor(X)
-  v <- levels(v)
-  v <- as.numeric(v)
-  options(OutDec=",")
-  points(u[[1]] ~ v,col="blue",pch=19)
-
+{
+R2_aj <- summary(mod.TR)$adj.r.squared/summary(erro_puro)$adj.r.squared
+R2_aj # R² ajustado
+}
   
 # --------------------------------------------
-# 12) Teste da Falta de Ajuste
+# 11) Teste da Falta de Ajuste
 # --------------------------------------------
 # Usar apenas quando Y tiver repetições.
 # Se Pr(>F) > 0,05, então o modelo se ajusta bem aos dados 
@@ -390,4 +293,45 @@ write.csv2(
     "RLS - Teste da Falta de Ajuste.csv") 
 
 
+# --------------------------------------------
+# 12) Gráfico da regressão
+# --------------------------------------------
+# Equação
+{
+texto <- sprintf('y=(%.2f)+(%.2f)*x,  R² = %.2f',
+                 mod$coefficients[1],
+                 mod$coefficients[2],
+                 summary(mod)$r.squared/summary(erro_puro)$r.squared)
+texto
+
+# Barras de erro padrão médio
+tgc <- summarySE(dados.TR, measurevar="Y", groupvars=c("X"))
+}
+
+
+# Gráfico 
+# Para salvar, use "Save as Image..." -> Image format: SVG.
+{
+  library(ggplot2)
+  (
+    grafico <- ggplot(data = tgc, aes(x = X, y = Y)) +
+    labs(x = "Densidade (g/cm³)",
+         y = "Massa fresca da raiz (g)") +
+    geom_errorbar(aes(ymin=Y-se,
+                      ymax=Y+se),
+                  width=.05,
+                  col = "red") +
+    geom_smooth(method = "lm") +
+        stat_summary(
+        geom = "point",
+        fun = "mean",
+        col = "black",
+        size = 2,
+        shape = 21,
+        fill = "red"
+      ) +
+    theme_bw() +
+    geom_text(aes(x=,min(X), y=min(Y), label=texto), hjust=0, vjust=1)
+  )
+}
 
